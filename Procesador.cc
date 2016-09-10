@@ -1,18 +1,25 @@
+// Compilar usando g++ -pthread filename1 [filename2...] [-o outputFileName]
+/**
+ * Tarea Programada: simulacion de MIPS 3 nucleos
+ * Adriana Mora Calvo        B24385
+ * Lisbeth Rojas Montero     B15745
+ * */
 #include <iostream>
+#include <pthread.h> //Biblioteca para uso de pthreads
 #include "Contextos.h"
 using namespace std;
 
 int main() 
 {
-    cout << "Hello World!" << endl;
     
     //variables compartidas
-    
-    int * memDatos;
-    int * memInstruc;
-    int busDatos, busInstruc;
-    Contextos *cola;
-    int total;
+    pthread_barrier_t barrera;  // inicializacion de la barrera
+
+    int * memDatos;             // cache de datos (cada nucleo tiene una propia)
+    int * memInstruc;           // cache de instrucciones (cada nucleo tiene una propia)
+    int busDatos, busInstruc;   // para lectura y escritura deben esperar el bus
+    Contextos *cola;            // para poder cambiar de contexto entre hilillos
+    int total;                  //PARA QUE SIRVE ESTO???? es para el quantum??
     
     memDatos = new int[96];
     memInstruc = new int [640];
@@ -31,16 +38,16 @@ int main()
 
 void Nucleos()
 {
-    int * reg = new int[33];    //Registro 0  = reg[0], registro RL = reg[32]
-    int cacheDatos[4][6];       //4 columnas 5 filas, (fila 0 p0, fila 3 etiqueta, fila 4 valides)
-    int cacheInstruc[4][6];     //4 columnas 5 filas, (fila 0 p0, fila 3 etiqueta, fila 4 valides)
-    int PC;
+    int * reg = new int[33];    //Registro 0 = reg[0] (contiene un cero), registro RL = reg[32]         LOS PROCESOS COMPARTEN LOS REGISTROS ASI QUE NO SE SI ESTO DEBE DE IR ARRIBA
+    int cacheDatos[4][6];       //4 columnas 5 filas, (fila 0 p0, fila 2 p1, fila 3 etiqueta, fila 4 valides)
+    int cacheInstruc[4][6];     //4 columnas 5 filas, (fila 0 p0, fila 2 p1, fila 3 etiqueta, fila 4 valides)
+    int PC;                     // para el control de las instrucciones
     int dirDatos, dirInstruc;
     
     int bloque, fisica, quantum;
     
-    dirDatos = 0;//indice de la cache
-    dirInstruc = 0;//indice de la cache
+    dirDatos = 0;       //indice de la cache
+    dirInstruc = 0;     //indice de la cache
     reg[0] = 0;
     for(int i = 0; i < 4; ++i)
     {
@@ -52,6 +59,9 @@ void Nucleos()
     }
 
     bool continuar;    
+    
+    // Modificación del quatum y ciclos de reloj 
+    // Realizado por el hilo 0 que se encarga de la coordinación de los demás hilos
     while(continuar)
     {
         //cargar PC;
@@ -67,15 +77,18 @@ void Nucleos()
     }
 }
 
+//Calcular direccion fisica de datos
 int CalcularFisica(int direccion)
 {
-    if(direccion >= 384)
+    if(direccion >= 384) //DE DONDE SE SACO ESTE 384?????
     {
         return (direccion - 384);
     }
     return (direccion / 4);
 }
 
+//Fallo de Cache
+// Cuando ocurre fallo de cache debo de traer el bloque completo de donde esta lo que quiero modificar
 void SubirBLoqueDatos(int columna, int posicion, bool datos)
 {
     if(datos)
@@ -99,9 +112,9 @@ void SubirBLoqueDatos(int columna, int posicion, bool datos)
         cacheInstruc[columna][5] = 1;
     }
     int pasado = 0;
-    while(pasado < 28)
+    while(pasado < 28) //Simulacion de que un fallo de cache dura 28 ciclos de reloj
     {
-        //doy ciclo
+        //tic de reloj
         ++pasado;
     }
     
