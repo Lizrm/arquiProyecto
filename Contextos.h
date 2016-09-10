@@ -13,7 +13,7 @@ class Contextos
 public:
 	
 	//Constructor de la clase
-	Contextos(int hilillos)
+	Contextos()
 	{
 	    n = 0;
 	} 
@@ -55,6 +55,14 @@ public:
 	    contexto * aux = primero;
 	    delete aux;
 	    --n;
+	}
+	
+	//pongo un hilillo en la cola de listos
+	void Encolar()
+	{
+		contexto * nueva  = new contexto;
+		ultimo -> siguiente = nueva;
+	    ultimo = nueva;
 	}
 
 private:
