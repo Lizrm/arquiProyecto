@@ -19,7 +19,8 @@ int main()
     int * memInstruc;           // cache de instrucciones (cada nucleo tiene una propia)
     int busDatos, busInstruc;   // para lectura y escritura deben esperar el bus
     Contextos *cola;            // para poder cambiar de contexto entre hilillos
-    int total, cop, rf1, rf2, rd;                  //PARA QUE SIRVE ESTO???? es para el quantum?? 
+    int total, cop, rf1, rf2, rd;
+    //total     total???? es para el quantum?? 
     // cop codigo de operacion
     // rf1 registro fuente
     // rf2 registro fuente 2 o registro destino dependiendo de la instruccion
@@ -49,6 +50,9 @@ void Nucleos()
     int dirDatos, dirInstruc;
     
     int bloque, fisica, quantum;
+    // bloque es el bloque de memoria cache
+    //fisica es
+    //quatum es el tiempo dado por el usuario
     
     dirDatos = 0;       //indice de la cache
     dirInstruc = 0;     //indice de la cache
@@ -124,66 +128,69 @@ void SubirBLoqueDatos(int columna, int posicion, bool datos)
     
 }
 
-//Codificacion de las instrucciones recibidas
-switch(cop) { //cop es el codigo de operacion que tenemos que definir como se lee la instruccion para meter eso en una variable entera
-    case 8 : //DADDI 
-//      rf1 <------- rf2 + inm
-    reg[rf1] =  reg[rf2] + rd;
+void Ejecutar(int cop){ //recibe el codigo de operacion para saber que hacer con los operandos
     
-    case 32 : //DADD
-//      rd <------ rf1 + rf2
-    reg[rd] = reg[rf1] + reg[rf2];
-    
-    case 34 : //DSUB
-//     rd <------- rf1 - rf2
-    reg[rd] = reg[rf1] - reg[rf2];
-    
-    case 12: //DMUL
-//      rd <------ rf1 * rf2
-    reg[rd] = reg[rf1] * reg[rf2];
-    
-    case 14: //DIV
-//      rd <------ rf1 * rf2
-    reg[rd] = reg[rf1] / reg[rf2];
-    
-    case 4 : //BEZ
-// si rf = 0 entonces SALTA
-    if(reg[rf1] == 0){
-        //que hago con la n que recibo en rd
+    //Codificacion de las instrucciones recibidas
+    switch(cop) { //cop es el codigo de operacion que tenemos que definir como se lee la instruccion para meter eso en una variable entera
+        case 8 : //DADDI 
+    //      rf1 <------- rf2 + inm
+        reg[rf1] =  reg[rf2] + rd;
+        
+        case 32 : //DADD
+    //      rd <------ rf1 + rf2
+        reg[rd] = reg[rf1] + reg[rf2];
+        
+        case 34 : //DSUB
+    //     rd <------- rf1 - rf2
+        reg[rd] = reg[rf1] - reg[rf2];
+        
+        case 12: //DMUL
+    //      rd <------ rf1 * rf2
+        reg[rd] = reg[rf1] * reg[rf2];
+        
+        case 14: //DIV
+    //      rd <------ rf1 * rf2
+        reg[rd] = reg[rf1] / reg[rf2];
+        
+        case 4 : //BEZ
+    // si rf = 0 entonces SALTA
+        if(reg[rf1] == 0){
+            //que hago con la n que recibo en rd
+        }
+        
+        case 5 : //BNEZ
+    // si rf z 0 o rf > 0 entonces SALTA
+        if(reg[rf1] < 0 || reg[rf1] > 0){
+             //que hago con la n que recibo en rd
+        }
+        
+        case 3 : //JAL
+    //   reg 31 = PC
+        reg[31] = PC;
+    //  PC = PC + inm;
+        PC = PC + rd;
+        
+        case 2 :  //JR
+    //  PC = rf1
+        PC = reg[rf1];
+        
+        case 50 : //LL
+        //Se implementará en la tercera entrega
+        
+        case 51 : //SC
+        //Se implementará en la tercera entrega
+        
+        case 35 : //LW
+        //  ESTO DEBEMOS DE VER COMO LO VAMOS A PROGRAMAR
+        //PORQUE HAY QUE VER LO DE LA TRADUCCION A BLOQUE Y PALABRA EN CACHE
+        // Y FALLOS DE CACHE
+        //USANDO EL BUS DE DATOS 
+        //PROGRAMAR LO DE LOS SEMAFOROS PARA EL USO DE BUSES
+        case 43: //SW
+        //ESTE SE DEBE DE PROGRAMAR ESCRIBIENDO EN MI CACHE Y EN LA MEMORIA PRINCIPAL
+        //USANDO EL BUS DE DATOS 
+        //PROGRAMAR LO DE LOS SEMAFOROS PARA EL USO DE BUSES
+        case 63 : //FIN
+    //Detener el programa
     }
-    
-    case 5 : //BNEZ
-// si rf z 0 o rf > 0 entonces SALTA
-    if(reg[rf1] < 0 || reg[rf1] > 0){
-         //que hago con la n que recibo en rd
-    }
-    
-    case 3 : //JAL
-//   reg 31 = PC
-    reg[31] = PC;
-//  PC = PC + inm;
-    PC = PC + rd;
-    
-    case 2 :  //JR
-//  PC = rf1
-    PC = reg[rf1];
-    
-    case 50 : //LL
-    //Se implementará en la tercera entrega
-    
-    case 51 : //SC
-    //Se implementará en la tercera entrega
-    
-    case 35 : //LW
-    //  ESTO DEBEMOS DE VER COMO LO VAMOS A PROGRAMAR
-    //PORQUE HAY QUE VER LO DE LA TRADUCCION A BLOQUE Y PALABRA EN CACHE
-    // Y FALLOS DE CACHE
-    //USANDO EL BUS DE DATOS 
-    //PROGRAMAR LO DE LOS SEMAFOROS PARA EL USO DE BUSES
-    case 43: //SW
-    //ESTE SE DEBE DE PROGRAMAR ESCRIBIENDO EN MI CACHE Y EN LA MEMORIA PRINCIPAL
-    //USANDO EL BUS DE DATOS 
-    //PROGRAMAR LO DE LOS SEMAFOROS PARA EL USO DE BUSES
-    case 63 : //FIN
-//Detener el programa
 }
