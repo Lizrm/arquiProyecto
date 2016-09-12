@@ -136,13 +136,16 @@ void SubirBLoqueDatos(int columna, int posicion, bool datos)
         cacheInstruc[columna][4] = posicion;
         cacheInstruc[columna][5] = 1;
     }
+}
+
+void Encicliarse(int ciclos)
+{
     int pasado = 0;
-    while(pasado < 28) //Simulacion de que un fallo de cache dura 28 ciclos de reloj
+    while(pasado < ciclos) //Simulacion de que un fallo de cache dura 28 ciclos de reloj
     {
         //tic de reloj
         ++pasado;
-    } // cuando salgo de aqui debo restar 28 al quantum
-    
+    } // cuando salgo de aqui debo restar ciclos al quantum
 }
 
 void Ejecutar(int cop)//recibe el codigo de operacion para saber que hacer con los operandos
