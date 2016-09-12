@@ -5,6 +5,7 @@
  * Lisbeth Rojas Montero     B15745
  * */
 #include <iostream>
+#include <fstream>
 #include <pthread.h> //Biblioteca para uso de pthreads
 #include "Contextos.h"
 using namespace std;
@@ -19,36 +20,52 @@ int main()
     int * memInstruc;           // cache de instrucciones (cada nucleo tiene una propia)
     int busDatos, busInstruc;   // para lectura y escritura deben esperar el bus
     Contextos *cola;            // para poder cambiar de contexto entre hilillos
-    int total, cop, rf1, rf2, rd;
-    //total     total???? es para el quantum?? 
-    // cop codigo de operacion
-    // rf1 registro fuente
-    // rf2 registro fuente 2 o registro destino dependiendo de la instruccion
-    // rd registro destino o inmediato dependiendo de la instruccion
+    int total;
     
-    memDatos = new int[96];
-    memInstruc = new int [640];
+    char linea[4];
+    memDatos = new int[96]; // 384/4
+    memInstruc = new int [640]; // 40 bloques * 4 *4
     
-    for(int i = 0; i < 96; ++i)
+    for(int i = 0; i < 96; ++i) // memoria principal inicilizada en uno
     {
         memDatos[i] = 1;
     }
-    for(int i = 0; i < 640; ++i)
+    for(int i = 0; i < 640; ++i) // memoria principal inicilizada en uno
     {
         memInstruc[i] = 1;
     }
     
     cola = new Contextos();
+    cout << "Direccion del archivo \n";
+    //cin >> nombreArchivo;
+    ifstream entrada(nombreArchivo); 
+    
+    int j = 0;
+    while(!entrada.eof())
+    {
+        entrada.getline(linea, 4);
+        for(int i = 0; i <4; ++i)
+        {
+            memInstruc[j] = linea[i] - 48;
+            j++;
+        }
+        
+    }
 }
 
 void Nucleos()
 {
-    int * reg = new int[33];    //Registro 0 = reg[0] (contiene un cero), registro RL = reg[32]         LOS PROCESOS COMPARTEN LOS REGISTROS ASI QUE NO SE SI ESTO DEBE DE IR ARRIBA
+    int * reg = new int[33];    //Registro 0 = reg[0] (contiene un cero), registro RL = reg[32] 
     int cacheDatos[4][6];       //4 columnas 5 filas, (fila 0 p0, fila 2 p1, fila 3 etiqueta, fila 4 valides)
     int cacheInstruc[4][6];     //4 columnas 5 filas, (fila 0 p0, fila 2 p1, fila 3 etiqueta, fila 4 valides)
     int PC;                     // para el control de las instrucciones
     int dirDatos, dirInstruc;
-    
+    int cop, rf1, rf2, rd;
+    //total     total???? es para el quantum?? 
+    // cop codigo de operacion
+    // rf1 registro fuente
+    // rf2 registro fuente 2 o registro destino dependiendo de la instruccion
+    // rd registro destino o inmediato dependiendo de la instruccion
     int bloque, fisica, quantum;
     // bloque es el bloque de memoria cache
     //fisica es
@@ -57,7 +74,7 @@ void Nucleos()
     dirDatos = 0;       //indice de la cache
     dirInstruc = 0;     //indice de la cache
     reg[0] = 0;
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0; i < 4; ++i) //las caches se inicializadas en cero
     {
         for(int j = 0; j < 6; ++j)
         {
@@ -124,14 +141,16 @@ void SubirBLoqueDatos(int columna, int posicion, bool datos)
     {
         //tic de reloj
         ++pasado;
-    }
+    } // cuando salgo de aqui debo restar 28 al quantum
     
 }
 
-void Ejecutar(int cop){ //recibe el codigo de operacion para saber que hacer con los operandos
+void Ejecutar(int cop)//recibe el codigo de operacion para saber que hacer con los operandos
+{ 
     
     //Codificacion de las instrucciones recibidas
-    switch(cop) { //cop es el codigo de operacion que tenemos que definir como se lee la instruccion para meter eso en una variable entera
+    switch(cop) //cop es el codigo de operacion que tenemos que definir como se lee la instruccion para meter eso en una variable entera
+    { 
         case 8 : //DADDI 
     //      rf1 <------- rf2 + inm
         reg[rf1] =  reg[rf2] + rd;
@@ -154,13 +173,15 @@ void Ejecutar(int cop){ //recibe el codigo de operacion para saber que hacer con
         
         case 4 : //BEZ
     // si rf = 0 entonces SALTA
-        if(reg[rf1] == 0){
+        if(reg[rf1] == reg[0])
+        {
             //que hago con la n que recibo en rd
         }
         
         case 5 : //BNEZ
     // si rf z 0 o rf > 0 entonces SALTA
-        if(reg[rf1] < 0 || reg[rf1] > 0){
+        if(reg[rf1] < reg[0] || reg[rf1] > reg[0])
+        {
              //que hago con la n que recibo en rd
         }
         
