@@ -44,9 +44,9 @@ int main()
     while(!entrada.eof())
     {
         entrada.getline(linea, 4);
-        for(int i = 0; i <4; ++i)
+        for(int i = 0; i < 4; ++i)
         {
-            memInstruc[j] = linea[i] - 48;
+            memInstruc[j] = (linea[i] - 48);
             j++;
         }
         
@@ -84,7 +84,6 @@ void Nucleos()
     }
 
     bool continuar;    
-    
     // Modificación del quatum y ciclos de reloj 
     // Realizado por el hilo 0 que se encarga de la coordinación de los demás hilos
     while(continuar)
@@ -94,7 +93,7 @@ void Nucleos()
         reg[31] = PC;
         
         //bloque = ; 
-        
+
         
         dirDatos =  (dirDatos + 1)%4;
         dirInstruc = (dirInstruc + 1)%4;
@@ -138,7 +137,7 @@ void SubirBLoqueDatos(int columna, int posicion, bool datos)
     }
 }
 
-void Encicliarse(int ciclos)
+void Encicliarse(int ciclos) // si retorna -1 es fallo de cache
 {
     int pasado = 0;
     while(pasado < ciclos) //Simulacion de que un fallo de cache dura 28 ciclos de reloj
@@ -148,6 +147,33 @@ void Encicliarse(int ciclos)
     } // cuando salgo de aqui debo restar ciclos al quantum
 }
 
+int BuscarCacheDatos(int PC)// si retorna -1 es fallo de cache
+{
+    int u = 0;
+    while(u < 4)
+    {
+        if((cacheDatos[u][5] == 1) && (int cacheDatos[u][4] == PC))
+        {
+            return u; //retorno la columna
+        }
+        u++;
+    }
+    return -1; //no esta en cache
+}
+
+int BuscarCacheInstrucciones(int PC)
+{
+    int u = 0;
+    while(!encontrado && u < 4)
+    {
+        if((cacheDatos[u][5] == 1) && (int cacheDatos[u][4] == PC))
+        {
+            return u; //retorno la columna
+        }
+        u++;
+    }
+    return -1; //no esta en cache
+}
 void Ejecutar(int cop)//recibe el codigo de operacion para saber que hacer con los operandos
 { 
     
