@@ -23,12 +23,13 @@ int main()
     Contextos * cola;            // para poder cambiar de contexto entre hilillos
     Contextos * finalizados;    //Guarda el estado de los registros y las cache en la que termino el hilillo
     int total;                  //Total de hilillos
+    int quantumTotal;           //Variable compartida, solo de lectura, no debe ser modificada por los hilos
     char linea[4];
     int cacheDatos[6][4];       //4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
     int * RL;
     mutex md1, md2, md3;        // Los mutex para las 3 memorias de datos
     mutex busD, busI;           // Mutex para los 2 buses
-    mutex cola, listos;         //Mutex para las 2 estructuras auxiliares
+    mutex mCola, listos;         //Mutex para las 2 estructuras auxiliares
     
     //**Bloque de creacion**//
     memDatos = new int[96]; // 384/4
@@ -49,14 +50,25 @@ int main()
         memInstruc[i] = 1;
     }
     
+    for(int i = 0; i < 6; ++i) //las caches se inicializadas en cero
+    {
+        for(int j = 0; j < 4; ++j)
+        {
+            cacheDatos[i][j] = 0;
+        }
+    }
+
     
-    ifstream entrada(nombreArchivo); 
-    int j = 0;
-    bool seguir  = true;
-    while(seguir)
+    cout << "Ingrese el quantum para los hilillos \n" << endl;
+    cin >> quantumTotal;
+    
+    cout << "Ingrese el número total de hilillos \n" << endl;
+    cin >> total;
+    int indice = 0;
+    for(int j = 0; j < total; ++j)
     {
         //obtener archivo
-        cola->Encolar(j);
+        cola->Encolar(indice); //Solo agrega el PC para inciciar las intrucciones
         
         while(!entrada.eof()) // leer todo lo que esta en el archivo
         {
@@ -64,13 +76,12 @@ int main()
             int i = 0;
             while(i<7)
             {
-                memInstruc[j] = (linea[i] - 48);
-                j++;
+                memInstruc[indice] = (linea[i] - 48); //conversion a int
+                indice++;
                 i += 2;
             }
         }
     }
-    
 }
 
 void Nucleos()
@@ -80,7 +91,6 @@ void Nucleos()
     int PC;                     // para el control de las instrucciones
     int dirDatos, dirInstruc;
     int cop, rf1, rf2, rd;
-    //total     total???? es para el quantum?? 
     // cop codigo de operacion
     // rf1 registro fuente
     // rf2 registro fuente 2 o registro destino dependiendo de la instruccion
@@ -90,14 +100,13 @@ void Nucleos()
     //fisica es
     //quatum es el tiempo dado por el usuario
     
-    dirDatos = 0;       //indice de la cache
-    dirInstruc = 0;     //indice de la cache
-    reg[0] = 0;
-    for(int i = 0; i < 4; ++i) //las caches se inicializadas en cero
+    dirDatos = -1;       //indice de la cache
+    dirInstruc = -1;     //indice de la cache
+    reg[0] = 0;         //no debe ser modificado nunca
+    for(int i = 0; i < 6; ++i) //las caches se inicializadas en cero
     {
-        for(int j = 0; j < 6; ++j)
+        for(int j = 0; j < 16; ++j)
         {
-            cacheDatos[i][j] = 0;
             cacheInstruc[i][j] = 0; 
         }
     }
@@ -107,21 +116,16 @@ void Nucleos()
         reg[i] = 0;
     }
 
-    bool continuar;    
-    // Modificación del quatum y ciclos de reloj 
-    // Realizado por el hilo 0 que se encarga de la coordinación de los demás hilos
-    while(continuar)
-    {
         //cargar PC;
-        PC +=4;
-        reg[31] = PC;
+    PC +=4;
+    reg[31] = PC;
         
         //bloque = ; 
 
         
-        dirDatos =  (dirDatos + 1)%4;
-        dirInstruc = (dirInstruc + 1)%4;
-        quantum--;
+    dirDatos =  (dirDatos + 1)%4;
+    dirInstruc = (dirInstruc + 1)%4;
+//    quantum--; //lo resto al finalizar una instruccion
     }
 }
 
@@ -137,7 +141,7 @@ int CalcularFisica(int direccion)
 
 //Fallo de Cache
 // Cuando ocurre fallo de cache debo de traer el bloque completo de donde esta lo que quiero modificar
-void SubirBLoqueDatos(int columna, int posicion, bool datos)
+void SubirBLoqueDatos(int direccion)
 {
     if(datos)
     {
@@ -161,43 +165,36 @@ void SubirBLoqueDatos(int columna, int posicion, bool datos)
     }
 }
 
-void Encicliarse(int ciclos) // si retorna -1 es fallo de cache
+void Encicliarse(int ciclos)
 {
-    int pasado = 0;
-    while(pasado < ciclos) //Simulacion de que un fallo de cache dura 28 ciclos de reloj
+    for(int i = 0; i < ciclos; ++i) //Simulacion de que un fallo de cache
     {
-        //tic de reloj
-        ++pasado;
-    } // cuando salgo de aqui debo restar ciclos al quantum
+        TickReloj();       //tic de reloj
+    }
 }
 
-int BuscarCacheDatos(int PC)// si retorna -1 es fallo de cache
+void SinHilillos()
 {
-    int u = 0;
-    while(u < 4)
+    bool noHilillo = true;
+    while(noHilillo)
     {
-        if((cacheDatos[u][5] == 1) && (int cacheDatos[u][4] == PC))
+        TickReloj();
+        if(tri_lock(mCola))
         {
-            return u; //retorno la columna
-        }
-        u++;
+            if(!cola->Vacia)
+            {
+                //cola->Sacar();
+                unlock(mCola);
+                noHilillo = false;
+            }
+        }    
     }
-    return -1; //no esta en cache
+}
+void TickReloj()
+{
+    // aqui se debe poner la barrera de sincronizacion
 }
 
-int BuscarCacheInstrucciones(int PC)
-{
-    int u = 0;
-    while(!encontrado && u < 4)
-    {
-        if((cacheDatos[u][5] == 1) && (int cacheDatos[u][4] == PC))
-        {
-            return u; //retorno la columna
-        }
-        u++;
-    }
-    return -1; //no esta en cache
-}
 void Ejecutar(int cop)//recibe el codigo de operacion para saber que hacer con los operandos
 { 
     
