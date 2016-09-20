@@ -262,6 +262,6 @@ void Ejecutar(int cop)//recibe el codigo de operacion para saber que hacer con l
         //USANDO EL BUS DE DATOS 
         //PROGRAMAR LO DE LOS SEMAFOROS PARA EL USO DE BUSES
         case 63 : //FIN
-    //Detener el programa
+    //Detener el hilillo
     }
 }
