@@ -8,56 +8,75 @@
 #include <fstream>
 #include <pthread.h> //Biblioteca para uso de pthreads
 #include "Contextos.h"
+#include <mutex>
 using namespace std;
 
 int main() 
 {
     
     //variables compartidas
+    //**Bloque de Declaracion**//
     pthread_barrier_t barrera;  // inicializacion de la barrera
 
     int * memDatos;             // cache de datos (cada nucleo tiene una propia)
     int * memInstruc;           // cache de instrucciones (cada nucleo tiene una propia)
-    int busDatos, busInstruc;   // para lectura y escritura deben esperar el bus
-    Contextos *cola;            // para poder cambiar de contexto entre hilillos
-    int total;
-    
+    Contextos * cola;            // para poder cambiar de contexto entre hilillos
+    Contextos * finalizados;    //Guarda el estado de los registros y las cache en la que termino el hilillo
+    int total;                  //Total de hilillos
     char linea[4];
+    int cacheDatos[6][4];       //4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
+    int * RL;
+    mutex md1, md2, md3;        // Los mutex para las 3 memorias de datos
+    mutex busD, busI;           // Mutex para los 2 buses
+    mutex cola, listos;         //Mutex para las 2 estructuras auxiliares
+    
+    //**Bloque de creacion**//
     memDatos = new int[96]; // 384/4
     memInstruc = new int [640]; // 40 bloques * 4 *4
+    cola = new Contextos();     //Guarda el contexto de los hillos que no han finalizado
+    finalizados = new Contextos();  //Guarda el contexto de los hillos finalizados y el estado de las caches
+    RL = new int[3];      //Registros RL
     
+    
+    //**Bloque de inicializacion**//
     for(int i = 0; i < 96; ++i) // memoria principal inicilizada en uno
     {
         memDatos[i] = 1;
+        memInstruc[i] = 1;
     }
-    for(int i = 0; i < 640; ++i) // memoria principal inicilizada en uno
+    for(int i = 96; i < 640; ++i) // memoria principal inicilizada en uno
     {
         memInstruc[i] = 1;
     }
     
-    cola = new Contextos();
-    cout << "Direccion del archivo \n";
-    //cin >> nombreArchivo;
-    ifstream entrada(nombreArchivo); 
     
+    ifstream entrada(nombreArchivo); 
     int j = 0;
-    while(!entrada.eof())
+    bool seguir  = true;
+    while(seguir)
     {
-        entrada.getline(linea, 4);
-        for(int i = 0; i < 4; ++i)
-        {
-            memInstruc[j] = (linea[i] - 48);
-            j++;
-        }
+        //obtener archivo
+        cola->Encolar(j);
         
+        while(!entrada.eof()) // leer todo lo que esta en el archivo
+        {
+            entrada.getline(linea, 7);
+            int i = 0;
+            while(i<7)
+            {
+                memInstruc[j] = (linea[i] - 48);
+                j++;
+                i += 2;
+            }
+        }
     }
+    
 }
 
 void Nucleos()
 {
-    int * reg = new int[33];    //Registro 0 = reg[0] (contiene un cero), registro RL = reg[32] 
-    int cacheDatos[4][6];       //4 columnas 5 filas, (fila 0 p0, fila 2 p1, fila 3 etiqueta, fila 4 valides)
-    int cacheInstruc[4][6];     //4 columnas 5 filas, (fila 0 p0, fila 2 p1, fila 3 etiqueta, fila 4 valides)
+    int * reg = new int[32];    //Registro 0 = reg[0] (contiene un cero), 
+    int cacheInstruc[6][16];     //16 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
     int PC;                     // para el control de las instrucciones
     int dirDatos, dirInstruc;
     int cop, rf1, rf2, rd;
@@ -82,6 +101,11 @@ void Nucleos()
             cacheInstruc[i][j] = 0; 
         }
     }
+    
+    for(int i = 0; i < 33; ++i)
+    {
+        reg[i] = 0;
+    }
 
     bool continuar;    
     // Modificación del quatum y ciclos de reloj 
@@ -104,7 +128,7 @@ void Nucleos()
 //Calcular direccion fisica de datos
 int CalcularFisica(int direccion)
 {
-    if(direccion >= 384) //DE DONDE SE SACO ESTE 384?????
+    if(direccion >= 384)
     {
         return (direccion - 384);
     }

@@ -3,11 +3,22 @@
 
 class Contextos
 {
-    struct contexto
+    struct Contexto
     {
-    	int pc;     //
-    	int  regist[33];//Semaforo asociado al Thread
+    	int pc;    
+    	int  regist[32];
     	contexto * siguiente;
+    	int RL;
+    };
+    
+    struct EstadoFinal
+    {
+    	int pc;    
+    	int  regist[32];
+    	int RL;
+    	EstadoFinal* next;
+    	int cD[6][4];	
+    	int cI[6][16];
     };
 
 public:
@@ -22,12 +33,14 @@ public:
 
     //Guarda el contexto
     //reg se debe recibir por referencia creo
-	void Agregar(int p, int *reg)            
+	void Agregar(int p, int *reg, int rl)            
 	{
-	    
-	    contexto * nueva  = new contexto;
+	   
+	    Contexto * nueva  = new contexto;
 	    nueva->pc = p;
-	    for(int i = 1; i <33; ++i)
+	    nueva->RL = rl;
+	    
+	    for(int i = 1; i <32; ++i)
 	    {
 	        nueva->regist[i] = reg[i];
 	    }
@@ -43,33 +56,37 @@ public:
 	
 	//Borra el contexto 
 	//estos se deben recibir por referencia &
-	void Sacar(int p, int*reg)
+	void Sacar(int p, int*reg, int rl)
 	{
 	    p = primero->pc;
+	    rl = primero->RL;
 	    for(int i = 1; i <33; ++i)
 	    {
 	        reg[i] = primero->regist[i];
 	    }
 	    
         primero = primero->siguiente;
-	    contexto * aux = primero;
+	    Contexto * aux = primero;
 	    delete aux;
 	    --n;
 	}
-	
-	//pongo un hilillo en la cola de listos
-	void Encolar()
+
+	void Encolar(int pc)
 	{
 		contexto * nueva  = new contexto;
+		nueva ->PC = pc;
+		
 		ultimo -> siguiente = nueva;
 	    ultimo = nueva;
-	}
-
+}
 private:
 
-    contexto * primero;
-    contexto * ultimo;
+    Contexto * primero;
+    Contexto * ultimo;
     int n;
+    
+    EstadoFinal * inicio;
+   
 };
 
 #endif //CONTEXTOS_H
