@@ -122,7 +122,7 @@ class Procesador
        int[][] reg;              //Registro 0 = reg[0] (contiene un cero), 
        int[][] cacheInstruc;     //16 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
        int PC;                   //Para el control de las instrucciones
-       int dirDatos, dirInstruc;
+      
        int cop, rf1, rf2, rd;
        // cop codigo de operacion
        // rf1 registro fuente
@@ -210,11 +210,6 @@ class Procesador
            PC += 4;
        }
        
-           
-   
-           
-       dirDatos =  (dirDatos + 1)%4;
-       dirInstruc = (dirInstruc + 1)%4;
    //    quantum--; //lo resto al finalizar una instruccion
        }
    }
