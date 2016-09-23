@@ -72,7 +72,7 @@ class Procesador
                cacheDatos1[i][j] = 0;
            }
        }
-       for(int i = 0; i < 2; ++i) //las caches se inicializadas en cero
+       for(int i = 4; i < 6; ++i) //las caches se inicializadas en cero
        {
            for(int j = 0; j < 4; ++j)
            {
@@ -128,7 +128,7 @@ class Procesador
        // rf1 registro fuente
        // rf2 registro fuente 2 o registro destino dependiendo de la instruccion
        // rd registro destino o inmediato dependiendo de la instruccion
-       int bloque, posicion, palabra, fisica,quantum;
+       int bloque, posicion, palabra, iterador,quantum;
        // bloque es el bloque de memoria cache
        //fisica es
        //quatum es el tiempo dado por el usuario
@@ -175,12 +175,39 @@ class Procesador
            Contextos.Sacar(); // debo verificar el paso de variables por referencia
            Monitor.Exit(cola);
            Monitor.Exit(RL);
+           /**************************/
            bloque = PC/16;  //calculo el bloque
-           posicion = bloque % 4;           
-           if()
+           posicion = bloque % 4;    
+           palabra = (PC%16) / 4;
+           iterador = posicion*4;
+           /*************************/
+           if(!(cacheInstruc[4][posicion] == bloque) && !(cacheInstruc[4][posicion] == 1)) //1 valido
            {
-               
+               // fallo de cahce
+                while(!Monitor.TryEnter(busI))
+                {
+                   TickReloj();     //preguntarle a la profe si es necesario dar tickde reloj y si debo soltar la cola
+                }
+                int it = PC;
+                for(int i = 0; i < 4; ++i)
+                {
+                    for(int j = 0; j < 4; ++j)
+                    {
+                        cacheInstruc[i][j] = memInstruc[it];
+                        ++it;
+                    }
+                }
+                cacheInstruc[4][posicion] = bloque;
+                cacheInstruc[5][posicion] = 1;
+                this.FallodeCache(28);
+                Monitor.Exit(busI);
            }
+           iterador = posicion*4;
+           cop = cacheInstruc[palabra][iterador];
+           rf1 = cacheInstruc[palabra][iterador+1];
+           rf2 = cacheInstruc[palabra][iterador+2];
+           rd = cacheInstruc[palabra][iterador+3];
+           PC += 4;
        }
        
            
