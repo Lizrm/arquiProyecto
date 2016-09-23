@@ -63,13 +63,22 @@ class Procesador
            memInstruc[i] = 1;
        }
        
-       for(int i = 0; i < 6; ++i) //las caches se inicializadas en cero
+       for(int i = 0; i < 4; ++i) //las caches se inicializadas en cero
        {
            for(int j = 0; j < 4; ++j)
            {
                cacheDatos3[i][j] = 0;
                cacheDatos2[i][j] = 0;
                cacheDatos1[i][j] = 0;
+           }
+       }
+       for(int i = 0; i < 2; ++i) //las caches se inicializadas en cero
+       {
+           for(int j = 0; j < 4; ++j)
+           {
+               cacheDatos3[i][j] = -1;
+               cacheDatos2[i][j] = -1;
+               cacheDatos1[i][j] = -1;
            }
        }
        //*****************Fin de Bloque*************************//
@@ -107,7 +116,7 @@ class Procesador
       }
    }
    
-   private void Nucleos()
+   private void Nucleos(int q) //quatum
    {
       /**Bloque de Declaracion**/
        int[][] reg;              //Registro 0 = reg[0] (contiene un cero), 
@@ -119,37 +128,62 @@ class Procesador
        // rf1 registro fuente
        // rf2 registro fuente 2 o registro destino dependiendo de la instruccion
        // rd registro destino o inmediato dependiendo de la instruccion
-       int bloque, fisica, quantum;
+       int bloque, posicion, palabra, fisica,quantum;
        // bloque es el bloque de memoria cache
        //fisica es
        //quatum es el tiempo dado por el usuario
        
        /**Bloque de Creacion**/
        reg = new int[32];    
-       cacheInstruc = new int[6][16];     
+       cacheInstruc = new int[0][16];     
+       cacheInstruc = new int[1][16];
+       cacheInstruc = new int[2][16];     
+       cacheInstruc = new int[3][16];     
+       cacheInstruc = new int[4][4];     
+       cacheInstruc = new int[5][4];     
        
        /**Bloque inicializacion**//
        dirDatos = -1;       //indice de la cache
        dirInstruc = -1;     //indice de la cache
        reg[0] = 0;         //no debe ser modificado nunca
-       for(int i = 0; i < 6; ++i) //las caches se inicializadas en cero
+       for(int i = 0; i < 4; ++i) //las caches se inicializadas en cero
        {
            for(int j = 0; j < 16; ++j)
            {
                cacheInstruc[i][j] = 0; 
            }
        }
-       
-       for(int i = 0; i < 33; ++i)
+       for(int i = 4; i < 6; ++i) //las caches se inicializadas en cero
        {
-           reg[i] = 0;
+           for(int j = 0; j < 4; ++j)
+           {
+               cacheInstruc[i][j] = -1; 
+           }
        }
-   
-       //cargar PC;
-       PC +=4;
-       reg[31] = PC;
+       
+       while(true)//while que no deja que los hilos mueran
+       {
+           while(!Monitor.TryEnter(cola))
+           {
+               TickReloj();
+           }
+           while(!Monitor.TryEnter(RL))
+           {
+               TickReloj();     //preguntarle a la profe si es necesario dar tickde reloj y si debo soltar la cola
+           }
            
-           //bloque = ; 
+           Contextos.Sacar(); // debo verificar el paso de variables por referencia
+           Monitor.Exit(cola);
+           Monitor.Exit(RL);
+           bloque = PC/16;  //calculo el bloque
+           posicion = bloque % 4;           
+           if()
+           {
+               
+           }
+       }
+       
+           
    
            
        dirDatos =  (dirDatos + 1)%4;
@@ -171,99 +205,3 @@ class Procesador
       //Barrera de sincronizacion
    }
    
-   private void EjecutarInstruccion()
-   {
-       //Codificacion de las instrucciones recibidas
-      switch(cop) //cop es el codigo de operacion 
-      { 
-         case 8 : //DADDI rf1 <------- rf2 + inm
-         
-            reg[rf1] =  reg[rf2] + rd;
-         break;
-         
-         case 32 : //DADD rd <------ rf1 + rf2
-         
-            reg[rd] = reg[rf1] + reg[rf2];
-         break;
-         
-         case 34 : //DSUB  rd <------- rf1 - rf2
-         
-            reg[rd] = reg[rf1] - reg[rf2];
-         break;
-         
-         case 12: //DMUL  rd <------ rf1 * rf2
-         
-            reg[rd] = reg[rf1] * reg[rf2];
-         break;
-         
-         case 14: //DIV  rd <------ rf1 / rf2
-         
-            reg[rd] = reg[rf1] / reg[rf2];
-         break;
-         
-         case 4 : //BEZ si rf = 0 entonces SALTA
-         
-            if(reg[rf1] == reg[0])
-            {
-            //que hago con la n que recibo en rd
-            }
-         break;
-         
-         case 5 : //BNEZ si rf z 0 o rf > 0 entonces SALTA
-         
-            if(reg[rf1] < reg[0] || reg[rf1] > reg[0])
-            {
-             //que hago con la n que recibo en rd
-            }
-         break;
-         
-         case 3 : //JAL  reg 31 = PC
-         
-            reg[31] = PC;
-            PC = PC + rd;   //  PC = PC + inm;
-         break;
-         
-         case 2 :  //JR  PC = rf1
-         
-            PC = reg[rf1];
-         break;
-         
-         case 50 : //LL
-         //Se implementará en la tercera entrega
-         break;
-         
-         case 51 : //SC
-         //Se implementará en la tercera entrega
-         break;
-         
-         case 35 : //LW
-
-         //pedir memoria de datos
-         switch(myID)   //Id del proceso
-         {
-            case 1:
-            break;
-            case 2:
-            break;
-            case 3:
-            break;
-         }
-         for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
-         {
-            cacheDatos[columna][i] = memDatos[posicion];     
-         }
-         cacheDatos[columna][4] = bloque;
-         cacheDatos[columna][5] = 1;
-       break;
-         
-         case 43: //SW
-         
-         break;
-         
-         case 63 : //FIN
-         
-            quantum = -1;  // Para tener el control de que la ultima instruccion fue FIN
-         break;
-      }
-   }
-}
