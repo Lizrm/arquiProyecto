@@ -72,12 +72,34 @@ class Procesador
                cacheDatos1[i][j] = 0;
            }
        }
-      //*****************Fin de Bloque*************************//
+       //*****************Fin de Bloque*************************//
       
+        Console.Write("Ingrese el quantum \n");
+        quantumTotal = int.Parse(Console.ReadLine());
       
-      //Creacion de 3 threads
-       
-       for(int i = 1; i <= numThreads; i++)
+        Console.Write("\nIngrese el numero de hilillos Totales \n");
+        total = int.Parse(Console.ReadLine());
+      
+        int indice = 0;
+        for(int j = 0; j < total; ++j)
+        {
+            //obtener archivo
+            cola.Encolar(indice); //Solo agrega el PC para iniciar las intrucciones
+            
+            while(!entrada.eof()) // Cambiar por instruccion de c#
+            {
+                entrada.getline(linea, 7);// Cambiar por instruccion de c#
+                int i = 0;
+                while(i<7)
+                {
+                    memInstruc[indice] = (linea[i] - 48); //conversion a int // Cambiar por instruccion de c#
+                    indice++;
+                    i += 2;
+                }
+            }
+    }
+      
+       for(int i = 1; i <= numThreads; i++)//Creacion de 3 threads
       {
          Thread myThread = new Thread(new ThreadStart(MyThreadProc));
          myThread.Name = String.Format("Nucleo{0}", i);
