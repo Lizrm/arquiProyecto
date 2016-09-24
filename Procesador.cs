@@ -157,15 +157,13 @@ class Procesador
        {
            for(int j = 0; j < 4; ++j)
            {
-               cacheInstruc[i][j] = -1; 
+               cacheInstruc[i][j] = -1;
            }
        }
        
        while(true)//while que no deja que los hilos mueran
        {
-           
-           
-           while(!Monitor.TryEnter(cola))
+           while(!Monitor.TryEnter(cola))	//preguntarle si debo hacer try o debo quedarme aqui esperando y no dar tick de reloj
            {
                TickReloj();
            }
@@ -177,42 +175,169 @@ class Procesador
            Contextos.Sacar(); // debo verificar el paso de variables por referencia
            Monitor.Exit(cola);
            Monitor.Exit(RL);
-           /**************************/
-           bloque = PC/16;  //calculo el bloque
-           posicion = bloque % 4;    
-           palabra = (PC%16) / 4;
-           iterador = posicion*4;
-           /*************************/
-           if(!(cacheInstruc[4][posicion] == bloque) && !(cacheInstruc[4][posicion] == 1)) //1 valido
+           quantum = q;
+           while(quantum > 0)
            {
-               // fallo de cahce
-                while(!Monitor.TryEnter(busI))
-                {
-                   TickReloj();     //preguntarle a la profe si es necesario dar tickde reloj y si debo soltar la cola
-                }
-                int it = PC;
-                for(int i = 0; i < 4; ++i)
-                {
-                    for(int j = 0; j < 4; ++j)
-                    {
-                        cacheInstruc[i][j] = memInstruc[it];
-                        ++it;
-                    }
-                }
-                cacheInstruc[4][posicion] = bloque;
-                cacheInstruc[5][posicion] = 1;
-                this.FallodeCache(28);
-                Monitor.Exit(busI);
+		       /**************************/
+		       bloque = PC/16;  //calculo el bloque
+		       posicion = bloque % 4;    
+		       palabra = (PC%16) / 4;
+		       iterador = posicion*4;
+		       /*************************/
+		       if(!(cacheInstruc[4][posicion] == bloque) && !(cacheInstruc[4][posicion] == 1)) //1 valido
+		       {
+		           // fallo de cahce
+		            while(!Monitor.TryEnter(busI))
+		            {
+		               TickdeReloj();     //preguntarle a la profe si es necesario dar tickde reloj y si debo soltar la cola
+		            }
+		            int it = PC;	//Es el incio del bloque, esto debo cambiarlo
+		            for(int i = 0; i < 4; ++i)
+		            {
+		                for(int j = 0; j < 4; ++j)
+		                {
+		                    cacheInstruc[i][j] = memInstruc[it];
+		                    ++it;
+		                }
+		            }
+		            cacheInstruc[4][posicion] = bloque;
+		            cacheInstruc[5][posicion] = 1;
+		            this.FallodeCache(28);
+		            Monitor.Exit(busI);
+		       } //Fin fallo de cache
+		       
+		       iterador = posicion*4;
+		       cop = cacheInstruc[palabra][iterador];
+		       rf1 = cacheInstruc[palabra][iterador+1];
+		       rf2 = cacheInstruc[palabra][iterador+2];
+		       rd = cacheInstruc[palabra][iterador+3];
+		       PC += 4;
+		       
+		       //Codificacion de las instrucciones recibidas
+				switch(cop) //cop es el codigo de operacion 		// se deben verificar que el registro destino no sea cero 
+				{ 
+					case 8 : //DADDI rf1 <------- rf2 + inm
+
+						reg[rf1] =  reg[rf2] + rd;
+					break;
+
+					case 32 : //DADD rd <------ rf1 + rf2
+
+						reg[rd] = reg[rf1] + reg[rf2];
+					break;
+
+					case 34 : //DSUB  rd <------- rf1 - rf2
+
+						reg[rd] = reg[rf1] - reg[rf2];
+					break;
+
+					case 12: //DMUL  rd <------ rf1 * rf2
+
+						reg[rd] = reg[rf1] * reg[rf2];
+					break;
+
+					case 14: //DIV  rd <------ rf1 / rf2
+
+						reg[rd] = reg[rf1] / reg[rf2];
+					break;
+
+					case 4 : //BEZ si rf = 0 entonces SALTA
+
+						if(reg[rf1] == reg[0])
+						{
+							//que hago con la n que recibo en rd
+						}
+					break;
+
+					case 5 : //BNEZ si rf z 0 o rf > 0 entonces SALTA
+
+						if(reg[rf1] < reg[0] || reg[rf1] > reg[0])
+						{
+							int aux  = rd*4;
+							PC += aux
+						}
+					break;
+
+					case 3 : //JAL  reg 31 = PC
+
+						reg[31] = PC;
+						PC += rd;   //  PC = PC + inm;
+					
+					break;
+
+					case 2 :  //JR  PC = rf1
+
+						PC = reg[rf1];
+					break;
+
+					case 50 : //LL
+					//Se implementará en la tercera entrega
+					break;
+
+					case 51 : //SC
+					//Se implementará en la tercera entrega
+					break;
+
+					case 35 : //LW
+						//pedir memoria de datos
+						//caculos de bloque y palabra
+						switch(myID)   //Id del proceso
+						{
+							case 1:
+							break;
+							case 2:
+							break;
+							case 3:
+							break;
+						}
+						for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+						{
+						
+							cacheDatos[i][] = memDatos[posicion];     
+						}
+						cacheDatos[4][] = bloque;
+						cacheDatos[5][5] = 1;
+						//Se le entrega el dato al registro 
+						this.FallodeCache(28);					
+					break;
+
+					case 43: //SW
+					
+						
+						this.FallodeCache(7);
+						Monitor.Exit(busD);
+						//Monitor.Exit(); //soltar mi cache
+					
+					break;
+
+					case 63 : //FIN
+
+						quantum = -1;  // Para tener el control de que la ultima instruccion fue FIN
+					break;
+				}
+				
+				quantum--; //lo resto al finalizar una instruccion
+				
+				if(quatum < 0)
+				{
+					//ultima fue FIN	
+					//Lock Cola de finalizados
+					//Lock Mi cache de datos,  // PReguntar a la profe si debo hacer try o no?
+					//Lock RL
+					//Guardar los daros 
+					// Unlock cola, cache y RL
+				}
+				else
+				{
+					if(quantum == 0)//Se termino el quantum
+					{
+						//Lock Cola, RL y cache Datos
+						//Guarda el contexto
+						//Unlock Cache datos, RL y Cola
+					}
+				}
+				TickdeReloj();
            }
-           iterador = posicion*4;
-           cop = cacheInstruc[palabra][iterador];
-           rf1 = cacheInstruc[palabra][iterador+1];
-           rf2 = cacheInstruc[palabra][iterador+2];
-           rd = cacheInstruc[palabra][iterador+3];
-           PC += 4;
-       }
-       
-   //    quantum--; //lo resto al finalizar una instruccion
        }
    }
    
@@ -224,11 +349,7 @@ class Procesador
        }
    }
    
-   private void TickReloj()
+   private void TickdeReloj()
    {
       //Barrera de sincronizacion
-      
-      
-      
    }
-   
