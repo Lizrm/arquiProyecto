@@ -163,6 +163,8 @@ class Procesador
        
        while(true)//while que no deja que los hilos mueran
        {
+           
+           
            while(!Monitor.TryEnter(cola))
            {
                TickReloj();
@@ -225,5 +227,8 @@ class Procesador
    private void TickReloj()
    {
       //Barrera de sincronizacion
+      
+      
+      
    }
    
