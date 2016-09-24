@@ -1,29 +1,21 @@
-#ifndef CONTEXTOS_H
-#define CONTEXTOS_H
-
 class Contextos
 {
-    struct Contexto
+    private struct Contexto // C# mantiene los struct
     {
     	int pc;    
-    	int  regist[32];
-    	contexto * siguiente;
+    	int regist[32];
     	int RL;
-    };
+    }
     
-    struct EstadoFinal
+    private struct EstadoFinal // C# mantiene los struct
     {
     	int pc;    
-    	int  regist[32];
+    	int regist[32];
     	int RL;
-    	EstadoFinal* next;
     	int cD[6][4];	
     	int cI[6][16];
-    };
+    }
 
-public:
-	
-	//Constructor de la clase
 	Contextos()
 	{
 	    n = 0;
@@ -74,9 +66,12 @@ public:
 	void Encolar(int pc)
 	{
 		contexto * nueva  = new contexto;
-		nueva ->PC = pc;
-		
-		ultimo -> siguiente = nueva;
+		nueva.PC = pc;
+		for(int i = 0; i < 33; ++i)
+        {
+           nueva.reg[i] = 0;
+        }
+		ultimo.siguiente = nueva;
 	    ultimo = nueva;
 }
 private:
