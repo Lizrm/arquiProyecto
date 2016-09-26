@@ -48,7 +48,9 @@ class Procesador
        cola = new Contextos();    
        finalizados = new Contextos();  
        RL = new int[3];      
-       cacheDatos = new int[6][4];     
+       cacheDatos1 = new int[6][4]; //recorrerlasx filas
+       cacheDatos2 = new int[6][4]; //recorrerlasx filas
+       cacheDatos3 = new int[6][4]; //recorrerlasx filas
        //*******************Fin de Bloque***********************//
        
       //**Bloque de inicializacion**//
@@ -72,7 +74,7 @@ class Procesador
                cacheDatos1[i][j] = 0;
            }
        }
-       for(int i = 4; i < 6; ++i) //las caches se inicializadas en cero
+       for(int i = 4; i < 6; ++i) //las caches se inicializadas en invalidas
        {
            for(int j = 0; j < 4; ++j)
            {
@@ -119,7 +121,7 @@ class Procesador
    private void Nucleos(int q) //quatum
    {
       /**Bloque de Declaracion**/
-       int[][] reg;              //Registro 0 = reg[0] (contiene un cero), 
+       int[] reg;              //Registro 0 = reg[0] (contiene un cero), 
        int[][] cacheInstruc;     //16 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
        int PC;                   //Para el control de las instrucciones
       
@@ -128,9 +130,8 @@ class Procesador
        // rf1 registro fuente
        // rf2 registro fuente 2 o registro destino dependiendo de la instruccion
        // rd registro destino o inmediato dependiendo de la instruccion
-       int bloque, posicion, palabra, iterador,quantum;
+       int bloque, posicion, palabra, iterador,quantum, inicioBloque;
        // bloque es el bloque de memoria cache
-       //fisica es
        //quatum es el tiempo dado por el usuario
        
        /**Bloque de Creacion**/
@@ -143,8 +144,6 @@ class Procesador
        cacheInstruc = new int[5][4];     
        
        /**Bloque inicializacion**//
-       dirDatos = -1;       //indice de la cache
-       dirInstruc = -1;     //indice de la cache
        reg[0] = 0;         //no debe ser modificado nunca
        for(int i = 0; i < 4; ++i) //las caches se inicializadas en cero
        {
@@ -153,7 +152,7 @@ class Procesador
                cacheInstruc[i][j] = 0; 
            }
        }
-       for(int i = 4; i < 6; ++i) //las caches se inicializadas en cero
+       for(int i = 4; i < 6; ++i) //las caches se inicializadas en -1
        {
            for(int j = 0; j < 4; ++j)
            {
@@ -167,37 +166,41 @@ class Procesador
            {
                TickReloj();
            }
+           TickReloj();
            while(!Monitor.TryEnter(RL))
            {
                TickReloj();     //preguntarle a la profe si es necesario dar tickde reloj y si debo soltar la cola
            }
+           TickReloj();
            
            Contextos.Sacar(); // debo verificar el paso de variables por referencia
            Monitor.Exit(cola);
+           RL[myID] = -1;   //myID es el id del hilo
            Monitor.Exit(RL);
            quantum = q;
            while(quantum > 0)
            {
 		       /**************************/
 		       bloque = PC/16;  //calculo el bloque
-		       posicion = bloque % 4;    
+		       posicion = bloque % 4;    //posicion en cache
 		       palabra = (PC%16) / 4;
-		       iterador = posicion*4;
+		       iterador = posicion*4;   //iterador sobre la cache
 		       /*************************/
 		       if(!(cacheInstruc[4][posicion] == bloque) && !(cacheInstruc[4][posicion] == 1)) //1 valido
 		       {
-		           // fallo de cahce
+		           // fallo de cache
 		            while(!Monitor.TryEnter(busI))
 		            {
-		               TickdeReloj();     //preguntarle a la profe si es necesario dar tickde reloj y si debo soltar la cola
+		               TickdeReloj(); 
 		            }
-		            int it = PC;	//Es el incio del bloque, esto debo cambiarlo
+		            TickReloj();
+		            iterador //en la memoria de instrucciones
 		            for(int i = 0; i < 4; ++i)
 		            {
 		                for(int j = 0; j < 4; ++j)
 		                {
-		                    cacheInstruc[i][j] = memInstruc[it];
-		                    ++it;
+		                    cacheInstruc[i][j] = memInstruc[iterador];
+		                    ++iterador;
 		                }
 		            }
 		            cacheInstruc[4][posicion] = bloque;
@@ -210,7 +213,7 @@ class Procesador
 		       cop = cacheInstruc[palabra][iterador];
 		       rf1 = cacheInstruc[palabra][iterador+1];
 		       rf2 = cacheInstruc[palabra][iterador+2];
-		       rd = cacheInstruc[palabra][iterador+3];
+		       rd = cacheInstruc[palabra][iterador+3];  //destino
 		       PC += 4;
 		       
 		       //Codificacion de las instrucciones recibidas
@@ -245,16 +248,15 @@ class Procesador
 
 						if(reg[rf1] == reg[0])
 						{
-							//que hago con la n que recibo en rd
+							PC += (rd*4);
 						}
 					break;
 
 					case 5 : //BNEZ si rf z 0 o rf > 0 entonces SALTA
 
-						if(reg[rf1] < reg[0] || reg[rf1] > reg[0])
+						if(reg[rf1] < reg[0] || reg[rf1] > reg[0]) //PUEDO cambiar esto por un != de cero
 						{
-							int aux  = rd*4;
-							PC += aux
+							PC += (rd*4);
 						}
 					break;
 
@@ -280,29 +282,68 @@ class Procesador
 
 					case 35 : //LW
 						//pedir memoria de datos
-						//caculos de bloque y palabra
-						switch(myID)   //Id del proceso
+						//caculo de bloque y palabra
+						bool conseguido = false;
+						while(!conseguido)
 						{
-							case 1:
-							break;
-							case 2:
-							break;
-							case 3:
-							break;
+						    while(!Monitor.TryEnter(cacheDatos))    //cambiar por mi cache
+        		            {
+        		               TickdeReloj(); 
+        		            }
+        					TickReloj();
+    						if(!(bloque == cacheDatos[posicion]) && !(cacheDatos[posicion == 1]))
+    						{
+    						    if(!Monitor.TryEnter(busD))
+            		            {
+            		                Monitor.Exit(cacheDatos); //cambiar por mi cache de datos
+                                    TickReloj();            		               
+            		            }else
+            		            {
+            		                conseguido = true;
+            		                TickReloj();
+            		                iterador = inicioBloque;    //inicio del bloque a copiar
+        						    switch(myID)   //Id del proceso
+            						{
+            							case 1:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos1[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos1[4][posicion] = bloque;
+                    						cacheDatos1[5][posicion] = 1;
+                    						
+            							break;
+            							case 2:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos2[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos2[4][posicion] = bloque;
+                    						cacheDatos2[5][posicion] = 1;
+            							break;
+            							case 3:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos3[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos3[4][posicion] = bloque;
+                    						cacheDatos3[5][posicion] = 1;
+            							break;
+            						}
+            		            }
+    						}
 						}
-						for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
-						{
-						
-							cacheDatos[i][] = memDatos[posicion];     
-						}
-						cacheDatos[4][] = bloque;
-						cacheDatos[5][5] = 1;
-						//Se le entrega el dato al registro 
-						this.FallodeCache(28);					
+    					this.FallodeCache(28);
+    					Monitor.Exit(busD);
+						//Monitor.Exit(); //soltar mi cache 	
+    					}
+    					//Se le entrega el dato al registro 
 					break;
 
 					case 43: //SW
-					
 						
 						this.FallodeCache(7);
 						Monitor.Exit(busD);
@@ -318,22 +359,35 @@ class Procesador
 				
 				quantum--; //lo resto al finalizar una instruccion
 				
-				if(quatum < 0)
+				if(quatum < 0)//ultima fue FIN
 				{
-					//ultima fue FIN	
-					//Lock Cola de finalizados
-					//Lock Mi cache de datos,  // PReguntar a la profe si debo hacer try o no?
-					//Lock RL
-					//Guardar los daros 
-					// Unlock cola, cache y RL
+						
+					while(!Monitor.TryEnter(finalizados))
+		            {
+		               TickdeReloj(); 
+		            }
+					TickReloj();
+					while(!Monitor.TryEnter(RL[myID]))
+		            {
+		               TickdeReloj(); 
+		            }
+					TickReloj();
+					
+					//Guardar los datos: registros y PC
+					Monitor.Exit(finalizados);
+					Monitor.Exit(RL[myID]);
 				}
 				else
 				{
 					if(quantum == 0)//Se termino el quantum
 					{
-						//Lock Cola, RL y cache Datos
-						//Guarda el contexto
-						//Unlock Cache datos, RL y Cola
+						while(!Monitor.TryEnter(cola))//Lock Cola
+    		            {
+    		               TickdeReloj(); 
+    		            }
+						TickReloj(); 
+						//Guarda el contexto    
+						Monitor.Exit(cola);
 					}
 				}
 				TickdeReloj();

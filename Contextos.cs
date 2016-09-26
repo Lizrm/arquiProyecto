@@ -2,20 +2,11 @@ class Contextos
 {
     private struct Contexto // C# mantiene los struct
     {
-    	int pc;    
+    	int pc;
+    	int RL;	//Solo para los hilillos finalizdos
     	int regist[32];
-    	int RL;
     }
     
-    private struct EstadoFinal // C# mantiene los struct
-    {
-    	int pc;    
-    	int regist[32];
-    	int RL;
-    	int cD[6][4];	
-    	int cI[6][16];
-    }
-
 	Contextos()
 	{
 	    n = 0;
