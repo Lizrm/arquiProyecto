@@ -23,6 +23,7 @@ class Procesador
        Contextos cola;            // para poder cambiar de contexto entre hilillos
        Contextos finalizados;    //Guarda el estado de los registros y las cache en la que termino el hilillo
        int total;                  //Total de hilillos
+       int reloj;                   //Variable general del reloj
        int quantumTotal;           //Variable compartida, solo de lectura, no debe ser modificada por los hilos
        char[] linea;
        int[][] cacheDatos3;      //4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
@@ -54,7 +55,7 @@ class Procesador
        //*******************Fin de Bloque***********************//
        
       //**Bloque de inicializacion**//
-      
+        reloj = 0;
        for(int i = 0; i < 96; ++i) // memoria principal inicilizada en uno
        {
            memDatos[i] = 1;
@@ -110,7 +111,7 @@ class Procesador
             }
     }
       
-       for(int i = 1; i <= numThreads; i++)//Creacion de 3 threads
+      for(int i = 1; i <= numThreads; i++)//Creacion de 3 threads
       {
          Thread myThread = new Thread(new ThreadStart(MyThreadProc));
          myThread.Name = String.Format("Nucleo{0}", i);
@@ -405,5 +406,10 @@ class Procesador
    
    private void TickdeReloj()
    {
-      //Barrera de sincronizacion
+       barrier.SignalAndWait();
    }
+   
+   Barrier barrier = new Barrier(3, (bar) =>  //Pueda que tenga que cambiarlo al inicio del programa
+   {
+        reloj++;
+   });
