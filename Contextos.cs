@@ -1,48 +1,57 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Collections;
 
-public class Contextos
+namespace MultiThread
 {
-    private struct Contexto // C# mantiene los struct
+    public class Contextos
     {
-    	int pc;    	
-    	int[] regist = new int[32];
-       
-        public Contexto(int p, int[] reg)
+        private Queue cola;
+        private struct Contexto // C# mantiene los struct
         {
-            pc = p;   
-            for(int i = 1; i <32; ++i)
-	        {
-	            nueva->regist[i] = reg[i];
-	        }
+            public int pc;
+            public int[] regist;
+
+            public Contexto(int p, int[] reg)
+            {
+                pc = p;
+                regist = new int[32];
+                for (int i = 1; i < 32; ++i)
+                {
+                   regist[i] = reg[i];
+                }
+            }
         }
-    }
 
-    static public void Contextos() 
-    {
-        Queue cola = new Queue();
-    }
-	
-	~Contextos(){}	//Destructor de la clase
-
-   
-    //reg se debe recibir por referencia 
-    static public void Guardar(int p, int[] reg)//Guarda el contexto         
-	{
-	    Contexto nueva  = new Contexto(p, reg);
-        cola.Enqueue(nueva);
-	
-	}//FIN de Guardar
-
-    //recibir todo por referencia
-    static public void Sacar(int p, int[] reg) //Retorna el contexto
-    {
-        Contexto aux = cola.Dequeue();
-        p = aux.pc;
-        for (int i = 1; i < 32; ++i)
+        Contextos()
         {
-            reg[i] = aux.regist[i];
+            cola = new Queue();
         }
-    }//FIN de Sacar
-	
-} //FIN de la clase
+
+        ~Contextos() { }    //Destructor de la clase
+
+
+        //reg se debe recibir por referencia 
+        public void Guardar(int p, int[] reg)//Guarda el contexto         
+        {
+            Contexto nueva = new Contexto(p, reg);
+            cola.Enqueue(nueva);
+
+        }//FIN de Guardar
+
+        //recibir todo por referencia
+        public void Sacar(int p, int[] reg)//Retorna el contexto
+        {
+            Contexto aux = (Contexto)cola.Dequeue();
+            p = aux.pc;
+            for (int i = 1; i < 32; ++i)
+            {
+                reg[i] = aux.regist[i];
+            }
+        }//FIN de Sacar
+
+    }//FIN de la clase
+}
