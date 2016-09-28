@@ -1,74 +1,168 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+//Thread.CurrentThread.Name.Equals("2") == variable
 
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        static int reloj = 0;    //debe ser estatico para que la barrera lo pueda modificar
-        static int []vector;
-        static int quantum;
-
-        static Barrier barrier = new Barrier(3, (bar) =>  //Pueda que tenga que cambiarlo al inicio del programa
-        {
-            reloj++;        // solo se ejecuta una vez
-           // Console.WriteLine(reloj); //Escribir en consola
-           // Console.ReadLine();        // para esperar y visualizar los datos
-        });
-
-        static void Main(string[] args)
-        {
-            
-            Console.WriteLine("Quantum"); //Escribir en consola
-            quantum = int.Parse(Console.ReadLine());
-            vector = new int[4];
-            //int numThreads = 3;
-
-          
-
-            Thread my1 = new Thread(() => Nucleos(quantum));
-            my1.Name = String.Format("{0}", 1);
-            my1.Start();
-
-            Thread my2 = new Thread(() => Nucleos(quantum));
-            my2.Name = String.Format("{0}", 2);
-            my2.Start();
-
-            Thread my3 = new Thread(() => Nucleos(quantum));
-            my3.Name = String.Format("{0}", 3);
-            my3.Start();
-        }
-
-        static void Nucleos(int q) //recibe un int // debe ser estatic
-        {
-            //TicdeReloj();
-            if(Monitor.TryEnter(quantum))
-            {              
-                Console.WriteLine("primero");
-                Console.WriteLine(Thread.CurrentThread.Name); //Escribir en consola             
-                // Ensure that the lock is released.
-                Monitor.Exit(quantum);                
-            }
-            else 
-            {
-                if (Monitor.TryEnter(vector[1]))
-                {
-                    Console.WriteLine("segundo");
-                    Console.WriteLine(Thread.CurrentThread.Name); //Escribir en consola      
-                }
-            }
-            TicdeReloj();
-            //Console.ReadLine();        // para esperar y visualizar los datos
-            //Thread.CurrentThread.Name.Equals("2")
-
-        }
-
-        static void TicdeReloj()
-        {
-            barrier.SignalAndWait();
-        }
-    }
-}
+               switch(int.Parse(Thread.CurrentThread.Name))
+               {
+                   
+                   case 1:
+                        //caculo de bloque y palabra
+						bool conseguido = false;
+						while(!conseguido)
+						{
+						    while(!Monitor.TryEnter(cacheDatos))    //cambiar por mi cache
+        		            {
+        		               TicReloj(); 
+        		            }
+        					TickReloj();
+    						if(!(bloque == cacheDatos[posicion]) && !(cacheDatos[posicion == 1]))
+    						{
+    						    if(!Monitor.TryEnter(busD))
+            		            {
+            		                Monitor.Exit(cacheDatos); //cambiar por mi cache de datos
+                                    TicReloj();            		               
+            		            }else
+            		            {
+            		                conseguido = true;
+            		                TicReloj();
+            		                iterador = inicioBloque;    //inicio del bloque a copiar
+        						    switch(myID)   //Id del proceso
+            						{
+            							case 1:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos1[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos1[4][posicion] = bloque;
+                    						cacheDatos1[5][posicion] = 1;
+                    						
+            							break;
+            							case 2:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos2[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos2[4][posicion] = bloque;
+                    						cacheDatos2[5][posicion] = 1;
+            							break;
+            							case 3:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos3[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos3[4][posicion] = bloque;
+                    						cacheDatos3[5][posicion] = 1;
+            							break;
+            						}
+            		            }
+    						}
+						}
+    					this.FallodeCache(28);
+    					Monitor.Exit(busD);
+						//Monitor.Exit(); //soltar mi cache 
+    					//Se le entrega el dato al registro 
+                        
+                   break;
+                   
+                   case 2:
+                        //caculo de bloque y palabra
+						bool conseguido = false;
+						while(!conseguido)
+						{
+						    while(!Monitor.TryEnter(cacheDatos))    //cambiar por mi cache
+        		            {
+        		               TicReloj(); 
+        		            }
+        					TickReloj();
+    						if(!(bloque == cacheDatos[posicion]) && !(cacheDatos[posicion == 1]))
+    						{
+    						    if(!Monitor.TryEnter(busD))
+            		            {
+            		                Monitor.Exit(cacheDatos); //cambiar por mi cache de datos
+                                    TicReloj();            		               
+            		            }else
+            		            {
+            		                conseguido = true;
+            		                TicReloj();
+            		                iterador = inicioBloque;    //inicio del bloque a copiar
+        						    switch(myID)   //Id del proceso
+            						{
+            							case 1:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos1[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos1[4][posicion] = bloque;
+                    						cacheDatos1[5][posicion] = 1;
+                    						
+            							break;
+            							case 2:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos2[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos2[4][posicion] = bloque;
+                    						cacheDatos2[5][posicion] = 1;
+            							break;
+            							case 3:
+            							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                    						{
+                    							cacheDatos3[i][posicion] = memDatos[iterador];
+                    							iterador++;
+                    						}
+                    						cacheDatos3[4][posicion] = bloque;
+                    						cacheDatos3[5][posicion] = 1;
+            							break;
+            						}
+            		            }
+    						}
+						}
+    					this.FallodeCache(28);
+    					Monitor.Exit(busD);
+						//Monitor.Exit(); //soltar mi cache 
+    					//Se le entrega el dato al registro 
+                        
+                   break;
+                   
+                   case 3:
+                        //caculo de bloque y palabra y posicion
+						bool conseguido = false;
+						while(!conseguido)
+						{
+						    while(!Monitor.TryEnter(cacheDatos3))
+        		            {
+        		               TicReloj(); 
+        		            }
+        					TickReloj();
+    						if(!(bloque == cacheDatos3[posicion]) && !(cacheDatos3[posicion == 1]))
+    						{
+    						    if(!Monitor.TryEnter(busD))
+            		            {
+            		                Monitor.Exit(cacheDatos); //cambiar por mi cache de datos
+                                    TicReloj();            		               
+            		            }else
+            		            {
+            		                conseguido = true;
+            		                TicReloj();
+            		                inicioBloque = ;    //inicio del bloque a copiar
+						            
+						            for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+            						{
+            							cacheDatos3[i][posicion] = memDatos[iterador];
+            							iterador++;
+            						}
+            						cacheDatos3[4][posicion] = bloque;
+            						cacheDatos3[5][posicion] = 1;
+            		            }
+    						}
+						}
+    					this.FallodeCache(28);
+    					Monitor.Exit(busD);
+						//Monitor.Exit(caheDatos3); //soltar mi cache 
+    					//Se le entrega el dato al registro 
+                        
+                   break;
+               }

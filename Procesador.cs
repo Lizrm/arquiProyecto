@@ -58,8 +58,8 @@ namespace MultiThread
           
            memDatos = new int[96]; // 384/4
            memInstruc = new int [640]; // 40 bloques * 4 *4
-           //cola = new Contextos();    
-           //finalizados = new Contextos();  
+           cola = new Contextos();    
+           finalizados = new Contextos();  
           
            RL1 = new int[1];
            RL2 = new int[1];
@@ -185,21 +185,50 @@ namespace MultiThread
            
            while(true)//while que no deja que los hilos mueran
            {
-               while(!Monitor.TryEnter(cola))	//preguntarle si debo hacer try o debo quedarme aqui esperando y no dar tick de reloj
+               while(!Monitor.TryEnter(cola))
                {
-                   TickReloj();
-               }
-               TickReloj();
-               while(!Monitor.TryEnter(RL))
-               {
-                   TickReloj();     //preguntarle a la profe si es necesario dar tickde reloj y si debo soltar la cola
+                   TicReloj();
                }
                TickReloj();
                
-               Contextos.Sacar(); // debo verificar el paso de variables por referencia
+               switch(int.Parse(Thread.CurrentThread.Name))
+               {
+                   
+                   case 1:
+                        while(!Monitor.TryEnter(RL1))
+                        {
+                           TicReloj();     
+                        }
+                        TicReloj();
+                        RL1 = -1;
+                        Monitor.Exit(RL1);
+                   break;
+                   
+                   case 2:
+                        while(!Monitor.TryEnter(RL2))
+                        {
+                           TicReloj();     
+                        }
+                        TicReloj();
+                        RL2 = -1;
+                        Monitor.Exit(RL2);
+                   break;
+                   
+                   case 3:
+                        while(!Monitor.TryEnter(RL3))
+                        {
+                           TicReloj();     
+                        }
+                        TicReloj();
+                        RL3 = -1;
+                        Monitor.Exit(RL3);
+                   break;
+               }
+               
+               Contextos.Sacar(ref PC, ref reg); // debo verificar el paso de variables por referencia
                Monitor.Exit(cola);
-               RL[myID] = -1;   //myID es el id del hilo
-               Monitor.Exit(RL);
+               
+               
                quantum = q;
                while(quantum > 0)
                {
@@ -319,11 +348,11 @@ namespace MultiThread
         						    if(!Monitor.TryEnter(busD))
                 		            {
                 		                Monitor.Exit(cacheDatos); //cambiar por mi cache de datos
-                                        TickReloj();            		               
+                                        TicReloj();            		               
                 		            }else
                 		            {
                 		                conseguido = true;
-                		                TickReloj();
+                		                TicReloj();
                 		                iterador = inicioBloque;    //inicio del bloque a copiar
             						    switch(myID)   //Id del proceso
                 						{
