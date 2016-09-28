@@ -30,7 +30,7 @@ public class Contextos
     static public void Guardar(int p, int reg)//Guarda el contexto         
 	{
 	    Contexto nueva  = new Contexto(p, reg);
-        myQ.Enqueue(nueva);
+        cola.Enqueue(nueva);
 	
 	}//FIN de Guardar
 
