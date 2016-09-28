@@ -191,7 +191,7 @@ namespace MultiThread
                }
                TickReloj();
                
-               switch(int.Parse(Thread.CurrentThread.Name))
+               switch(int.Parse(Thread.CurrentThread.Name)) //RL
                {
                    
                    case 1:
@@ -227,16 +227,14 @@ namespace MultiThread
                
                Contextos.Sacar(ref PC, ref reg); // debo verificar el paso de variables por referencia
                Monitor.Exit(cola);
-               
-               
                quantum = q;
+               
                while(quantum > 0)
                {
     		       /**************************/
     		       bloque = PC/16;  //calculo el bloque
     		       posicion = bloque % 4;    //posicion en cache
     		       palabra = (PC%16) / 4;
-    		       iterador = posicion*4;   //iterador sobre la cache
     		       /*************************/
     		       if(!(cacheInstruc[4][posicion] == bloque) && !(cacheInstruc[4][posicion] == 1)) //1 valido
     		       {
@@ -246,17 +244,22 @@ namespace MultiThread
     		               TicReloj(); 
     		            }
     		            TicReloj();
-    		            iterador //en la memoria de instrucciones
+    		            
+    		            cacheInstruc[4][posicion] = bloque;
+    		            cacheInstruc[5][posicion] = 1;
+    		            
+    		            iterador = posicion *4;
+    		            inicioBloque = ;// calcular
     		            for(int i = 0; i < 4; ++i)
     		            {
     		                for(int j = 0; j < 4; ++j)
     		                {
-    		                    cacheInstruc[i][j] = memInstruc[iterador];
+    		                    cacheInstruc[i][iterador] = memInstruc[inicioBloque];
     		                    ++iterador;
+    		                    +inicioBloque;
     		                }
+    		                iterador -= 3;
     		            }
-    		            cacheInstruc[4][posicion] = bloque;
-    		            cacheInstruc[5][posicion] = 1;
     		            this.FallodeCache(28);
     		            Monitor.Exit(busI);
     		       } //Fin fallo de cache
@@ -335,72 +338,318 @@ namespace MultiThread
     					case 35 : //LW
     						//pedir memoria de datos
     						//caculo de bloque y palabra
-    						bool conseguido = false;
-    						while(!conseguido)
-    						{
-    						    while(!Monitor.TryEnter(cacheDatos))    //cambiar por mi cache
-            		            {
-            		               TicReloj(); 
-            		            }
-            					TickReloj();
-        						if(!(bloque == cacheDatos[posicion]) && !(cacheDatos[posicion == 1]))
-        						{
-        						    if(!Monitor.TryEnter(busD))
-                		            {
-                		                Monitor.Exit(cacheDatos); //cambiar por mi cache de datos
-                                        TicReloj();            		               
-                		            }else
-                		            {
-                		                conseguido = true;
-                		                TicReloj();
-                		                iterador = inicioBloque;    //inicio del bloque a copiar
-            						    switch(myID)   //Id del proceso
+    						switch(int.Parse(Thread.CurrentThread.Name))
+                            {
+                                case 1:
+                                    //caculo de bloque y palabra
+            						bool conseguido = false;
+            						while(!conseguido)
+            						{
+            						    while(!Monitor.TryEnter(cacheDatos1))    //cambiar por mi cache
+                    		            {
+                    		               TicReloj(); 
+                    		            }
+                    					TickReloj();
+                						if(!(bloque == cacheDatos1[4][posicion]) && !(cacheDatos1[5][posicion] == 1]))
                 						{
-                							case 1:
-                							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                						    if(!Monitor.TryEnter(busD))
+                        		            {
+                        		                Monitor.Exit(cacheDatos1); //cambiar por mi cache de datos
+                                                TicReloj();            		               
+                        		            }else
+                        		            {
+                        		                conseguido = true;
+                        		                TicReloj();
+                    						    inicioBloque = ;    //inicio del bloque a copiar
+                        		                
+                    						    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
                         						{
-                        							cacheDatos1[i][posicion] = memDatos[iterador];
-                        							iterador++;
+                        							cacheDatos1[i][posicion] = memDatos[nicioBloque];
+                        							nicioBloque++;
                         						}
                         						cacheDatos1[4][posicion] = bloque;
                         						cacheDatos1[5][posicion] = 1;
-                        						
-                							break;
-                							case 2:
-                							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                        		            }
+                						}
+            						}
+                					this.FallodeCache(28);
+                					Monitor.Exit(busD);
+            						Monitor.Exit(cacheDatos1);
+                					//Se le entrega el dato al registro 
+                                    
+                                break;
+                               
+                                case 2:
+                                    //caculo de bloque y palabra
+            						bool conseguido = false;
+            						while(!conseguido)
+            						{
+            						    while(!Monitor.TryEnter(cacheDatos2))    //cambiar por mi cache
+                    		            {
+                    		               TicReloj(); 
+                    		            }
+                    					TickReloj();
+                						if(!(bloque == cacheDatos2[4][posicion]) && !(cacheDatos2[5][posicion] == 1]))
+                						{
+                						    if(!Monitor.TryEnter(busD))
+                        		            {
+                        		                Monitor.Exit(cacheDatos2); //cambiar por mi cache de datos
+                                                TicReloj();            		               
+                        		            }else
+                        		            {
+                        		                conseguido = true;
+                        		                TicReloj();
+                        		                inicioBloque = ;    //inicio del bloque a copiar
+                        		                
+                    						    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
                         						{
-                        							cacheDatos2[i][posicion] = memDatos[iterador];
-                        							iterador++;
+                        							cacheDatos2[i][posicion] = memDatos[nicioBloque];
+                        							nicioBloque++;
                         						}
                         						cacheDatos2[4][posicion] = bloque;
                         						cacheDatos2[5][posicion] = 1;
-                							break;
-                							case 3:
-                							    for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
+                        		            }
+                						}
+            						}
+                					this.FallodeCache(28);
+                					Monitor.Exit(busD);
+            						Monitor.Exit(cacheDatos2); //soltar mi cache 
+                					//Se le entrega el dato al registro 
+                                    
+                                break;
+                               
+                                case 3:
+                                    //caculo de bloque y palabra y posicion
+            						bool conseguido = false;
+            						while(!conseguido)
+            						{
+            						    while(!Monitor.TryEnter(cacheDatos3))
+                    		            {
+                    		               TicReloj(); 
+                    		            }
+                    					TickReloj();
+                						if(!(bloque == cacheDatos3[4][posicion]) && !(cacheDatos3[5][posicion] == 1]))
+                						{
+                						    if(!Monitor.TryEnter(busD))
+                        		            {
+                        		                Monitor.Exit(cacheDatos); //cambiar por mi cache de datos
+                                                TicReloj();            		               
+                        		            }else
+                        		            {
+                        		                conseguido = true;
+                        		                TicReloj();
+                        		                inicioBloque = ;    //inicio del bloque a copiar
+            						            
+            						            for(int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
                         						{
-                        							cacheDatos3[i][posicion] = memDatos[iterador];
-                        							iterador++;
+                        							cacheDatos3[i][posicion] = memDatos[nicioBloque];
+                        							nicioBloque++;
                         						}
                         						cacheDatos3[4][posicion] = bloque;
                         						cacheDatos3[5][posicion] = 1;
-                							break;
+                        		            }
                 						}
-                		            }
-        						}
-    						}
-        					this.FallodeCache(28);
-        					Monitor.Exit(busD);
-    						//Monitor.Exit(); //soltar mi cache 	
-        					}
-        					//Se le entrega el dato al registro 
-    					break;
+            						}
+                					this.FallodeCache(28);
+                					Monitor.Exit(busD);
+            						Monitor.Exit(caheDatos3); //soltar mi cache 
+                					//Se le entrega el dato al registro
+                                break;
+                            }
+    	                break;
     
     					case 43: //SW
-    						
-    						this.FallodeCache(7);
-    						Monitor.Exit(busD);
-    						//Monitor.Exit(); //soltar mi cache
-    					
+    						switch(int.Parse(Thread.CurrentThread.Name))
+                            {
+                                case 1:
+                                    //caculo de bloque y palabra
+            						bool conseguido = false;
+            						while(!conseguido)
+            						{
+            						    while(!Monitor.TryEnter(cacheDatos1))    
+                    		            {
+                    		               TicReloj(); 
+                    		            }
+                    					TickReloj();
+                    					
+                    					if(!Monitor.TryEnter(busD))
+                    		            {
+                    		                Monitor.Exit(cacheDatos1); //cambiar por mi cache de datos
+                                            TicReloj();
+                    		            	
+                    		            }else
+                    		            {
+                    		            	TickReloj();
+	                    		            if(!Monitor.TryEnter(cacheDatos2))
+	                    		            {
+	                    		            	Monitor.Exit(busD);
+	                    		                Monitor.Exit(cacheDatos1);
+	                                            TicReloj();
+	                    		            	
+	                    		            }else
+	                    		            {
+	                    		            	TickReloj();
+	                    		            	if(bloque == cacheDatos2[posicion]) 
+                								{
+                									cacheDatos2[posicion] = -1;
+	                    		        		}
+	                    		        		Monitor.Exit(cacheDatos2);
+	                    		        		
+	                    		        		if(!Monitor.TryEnter(cacheDatos3))
+		                    		            {
+		                    		            	Monitor.Exit(busD);
+		                    		                Monitor.Exit(cacheDatos1);
+		                                            TicReloj();
+	                    		        		}else
+	                    		        		{
+	                    		        			TickReloj();
+	                    		        			if(bloque == cacheDatos3[posicion]) 
+	                								{
+	                									cacheDatos3[posicion] = -1;
+		                    		        		}
+		                    		        		Monitor.Exit(cacheDatos3);
+		                    		        		conseguido = true;
+	                    		        		}
+                    		            	}
+                    		            }
+            						}
+            						if((bloque == cacheDatos1[4][posicion]) && (cacheDatos1[5][posicion] == 1]))
+            						{
+                		               cacheDatos1[palabra][posicion] = ;//registro donde viene
+                    		            
+            						}
+            						memDatos[palabra] = ; //registro donde viene
+                					this.FallodeCache(7);
+                					Monitor.Exit(busD);
+            						Monitor.Exit(cacheDatos1);
+                                break;
+                               
+                                case 2:
+                                    //caculo de bloque y palabra
+            						bool conseguido = false;
+            						while(!conseguido)
+            						{
+            						    while(!Monitor.TryEnter(cacheDatos2))    
+                    		            {
+                    		               TicReloj(); 
+                    		            }
+                    					TickReloj();
+                    					
+                    					if(!Monitor.TryEnter(busD))
+                    		            {
+                    		                Monitor.Exit(cacheDatos2); 
+                                            TicReloj();
+                    		            	
+                    		            }else
+                    		            {
+                    		            	TickReloj();
+	                    		            if(!Monitor.TryEnter(cacheDatos1))
+	                    		            {
+	                    		            	Monitor.Exit(busD);
+	                    		                Monitor.Exit(cacheDatos2);
+	                                            TicReloj();
+	                    		            	
+	                    		            }else
+	                    		            {
+	                    		            	TickReloj();
+	                    		            	if(bloque == cacheDatos1[posicion]) 
+                								{
+                									cacheDatos1[posicion] = -1;
+	                    		        		}
+	                    		        		Monitor.Exit(cacheDatos1);
+	                    		        		
+	                    		        		if(!Monitor.TryEnter(cacheDatos3))
+		                    		            {
+		                    		            	Monitor.Exit(busD);
+		                    		                Monitor.Exit(cacheDatos2);
+		                                            TicReloj();
+	                    		        		}else
+	                    		        		{
+	                    		        			TickReloj();
+	                    		        			if(bloque == cacheDatos3[posicion]) 
+	                								{
+	                									cacheDatos3[posicion] = -1;
+		                    		        		}
+		                    		        		Monitor.Exit(cacheDatos3);
+		                    		        		conseguido = true;
+	                    		        		}
+                    		            	}
+                    		            }
+            						}
+            						if((bloque == cacheDatos1[4][posicion]) && (cacheDatos1[5][posicion] == 1]))
+            						{
+                		               cacheDatos1[palabra][posicion] = ;//registro donde viene
+                    		            
+            						}
+            						memDatos[palabra] = ; //registro donde viene
+                					this.FallodeCache(7);
+                					Monitor.Exit(busD);
+            						Monitor.Exit(cacheDatos1);
+                                break;
+                               
+                                case 3:
+                                    //caculo de bloque y palabra
+            						bool conseguido = false;
+            						while(!conseguido)
+            						{
+            						    while(!Monitor.TryEnter(cacheDatos3))    
+                    		            {
+                    		               TicReloj(); 
+                    		            }
+                    					TickReloj();
+                    					
+                    					if(!Monitor.TryEnter(busD))
+                    		            {
+                    		                Monitor.Exit(cacheDatos3); 
+                                            TicReloj();
+                    		            	
+                    		            }else
+                    		            {
+                    		            	TickReloj();
+	                    		            if(!Monitor.TryEnter(cacheDatos1))
+	                    		            {
+	                    		            	Monitor.Exit(busD);
+	                    		                Monitor.Exit(cacheDatos3);
+	                                            TicReloj();
+	                    		            	
+	                    		            }else
+	                    		            {
+	                    		            	TickReloj();
+	                    		            	if(bloque == cacheDatos1[posicion]) 
+                								{
+                									cacheDatos1[posicion] = -1;
+	                    		        		}
+	                    		        		Monitor.Exit(cacheDatos1);
+	                    		        		
+	                    		        		if(!Monitor.TryEnter(cacheDatos2))
+		                    		            {
+		                    		            	Monitor.Exit(busD);
+		                    		                Monitor.Exit(cacheDatos3);
+		                                            TicReloj();
+	                    		        		}else
+	                    		        		{
+	                    		        			TickReloj();
+	                    		        			if(bloque == cacheDatos2[posicion]) 
+	                								{
+	                									cacheDatos2[posicion] = -1;
+		                    		        		}
+		                    		        		Monitor.Exit(cacheDatos2);
+		                    		        		conseguido = true;
+	                    		        		}
+                    		            	}
+                    		            }
+            						}
+            						if((bloque == cacheDatos1[4][posicion]) && (cacheDatos1[5][posicion] == 1]))
+            						{
+                		               cacheDatos1[palabra][posicion] = ;//registro donde viene
+                    		            
+            						}
+            						memDatos[palabra] = ; //registro donde viene
+                					this.FallodeCache(7);
+                					Monitor.Exit(busD);
+            						Monitor.Exit(cacheDatos1);
+                                break;
+                            }
     					break;
     
     					case 63 : //FIN
@@ -418,32 +667,29 @@ namespace MultiThread
     		            {
     		               TicReloj();
     		            }
-    					TicReloj()
-    					while(!Monitor.TryEnter(RL[myID]))
-    		            {
-    		               TicReloj(); 
-    		            }
     					TicReloj();
     					
-    					//Guardar los datos: registros y PC
+    					finalizados.Guardar(PC, ref reg);
     					Monitor.Exit(finalizados);
-    					Monitor.Exit(RL[myID]);
     				}
     				else
     				{
     					if(quantum == 0)//Se termino el quantum
     					{
-    						while(!Monitor.TryEnter(cola))//Lock Cola
+    						while(!Monitor.TryEnter(cola))
         		            {
         		               TicReloj(); 
         		            }
     						TicReloj() 
-    						//Guarda el contexto    
+    						cola.Guardar(PC, ref reg);
     						Monitor.Exit(cola);
     					}
     				}
     				TicReloj();
-               }
-        } //FIN de Nucleos       
+    				
+               }//FIN del quantum
+           }//FIN del while(true)
+        } //FIN de Nucleos    
+        
     }//FIN de la clase
 }//FIN del namespace

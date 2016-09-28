@@ -8,7 +8,7 @@ public class Contextos
     	int pc;    	
     	int[] regist = new int[32];
        
-        public Contexto(int p, int reg)
+        public Contexto(int p, int[] reg)
         {
             pc = p;   
             for(int i = 1; i <32; ++i)
@@ -27,7 +27,7 @@ public class Contextos
 
    
     //reg se debe recibir por referencia 
-    static public void Guardar(int p, int reg)//Guarda el contexto         
+    static public void Guardar(int p, int[] reg)//Guarda el contexto         
 	{
 	    Contexto nueva  = new Contexto(p, reg);
         cola.Enqueue(nueva);
@@ -35,7 +35,7 @@ public class Contextos
 	}//FIN de Guardar
 
     //recibir todo por referencia
-    static public void Sacar(int p, int reg) //Retorna el contexto
+    static public void Sacar(int p, int[] reg) //Retorna el contexto
     {
         Contexto aux = cola.Dequeue();
         p = aux.pc;
