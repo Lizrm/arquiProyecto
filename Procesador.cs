@@ -13,27 +13,27 @@ namespace MultiThread
 {
     class Procesador
     {
-
-        public static int[] memDatos;             // cache de datos (cada nucleo tiene una propia)
-        public static int[] memInstruc;           // cache de instrucciones (cada nucleo tiene una propia)
-        public static Contextos cola;            // para poder cambiar de contexto entre hilillos
-        public static Contextos finalizados;    //Guarda el estado de los registros y las cache en la que termino el hilillo
-        public static int total;                  //Total de hilillos
-        public static int reloj;                   //Variable general del reloj
-        public static int quantumTotal;           //Variable compartida, solo de lectura, no debe ser modificada por los hilos
-        public static int[,] cacheDatos3;      //4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
-        public static int[,] cacheDatos2;      //4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
-        public static int[,] cacheDatos1;      //4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
-        public static int[] RL1;
-        public static int[] RL2;
-        public static int[] RL3;
-        public static int[] busD;
-        public static int[] busI;
-        public static int llegan = 4;
+        //Inicializacion de las variables
+        public static int[] memDatos;           // Cache de datos (cada nucleo tiene una propia)
+        public static int[] memInstruc;         // Cache de instrucciones (cada nucleo tiene una propia)
+        public static Contextos cola;           // Para poder cambiar de contexto entre hilillos
+        public static Contextos finalizados;    // Guarda el estado de los registros y las cache en la que termino el hilillo
+        public static int total;                // Total de hilillos
+        public static int reloj;                // Variable general del reloj
+        public static int quantumTotal;         // Variable compartida, solo de lectura, no debe ser modificada por los hilos
+        public static int[,] cacheDatos3;       // 4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
+        public static int[,] cacheDatos2;       // 4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
+        public static int[,] cacheDatos1;       // 4 columnas 6 filas, (fila 0 p0, fila 2 p1, fila 4 etiqueta, fila 5 valides)
+        public static int[] RL1;                // Registros RL generales
+        public static int[] RL2;                // Registros RL generales
+        public static int[] RL3;                // Registros RL generales
+        public static int[] busD;               //  Bus de datos
+        public static int[] busI;               //Bus de instrucciones
+        public static int llegan = 4;           // Variable para las barreras
 
         static Barrier barrier = new Barrier(llegan, (bar) =>  //Barrera de sincronizacion, lo que esta dentro se ejecuta una sola vez
         {
-            reloj++;
+            reloj++;  // Reloj de la sincronizacion
         }); //FIN de la Barrera
 
         static public void TicReloj()
@@ -41,9 +41,9 @@ namespace MultiThread
             barrier.SignalAndWait();
         }//FIN de TicReloj
 
-        static public void FallodeCache(int ciclos) //Se encicla los tick de reloj dependiendo que la instruccion ejecutando
+        static public void FallodeCache(int ciclos) // Se encicla los tick de reloj dependiendo que la instruccion ejecutando
         {
-            for (int i = 0; i < ciclos; ++i) //Simulacion de que un fallo de cache
+            for (int i = 0; i < ciclos; ++i) // Simulacion de que un fallo de cache
             {
                 TicReloj();       //tic de reloj
             }
@@ -51,7 +51,7 @@ namespace MultiThread
 
         static void Main()
         {
-            Console.WriteLine("Hello World!"); //Escribir en consola
+            Console.WriteLine("Simulacion de 3 nucleos MIPS!"); //Escribir en consola
             string path = @"c:\temp\MyTest.txt";
             char[] linea = new char[8];
             using (StreamReader sr = new StreamReader("TestFile.txt"))
@@ -82,17 +82,17 @@ namespace MultiThread
            
           //*************Bloque de inicializacion******************//
             reloj = 0;
-            for(int i = 0; i< 96; ++i) // memoria principal inicilizada en uno
+            for(int i = 0; i< 96; ++i) // Memoria principal inicilizada en uno
             {
                 memDatos[i] = 1;
                 memInstruc[i] = 1;
             }
-           for(int i = 96; i< 640; ++i) // memoria principal inicilizada en uno
+           for(int i = 96; i< 640; ++i) // Memoria principal inicilizada en uno
            {
                memInstruc[i] = 1;
            }
            
-           for(int i = 0; i< 4; ++i) //las caches se inicializadas en cero
+           for(int i = 0; i< 4; ++i) // Las caches se inicializadas en cero
            {
                for(int j = 0; j< 4; ++j)
                {
