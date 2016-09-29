@@ -5,6 +5,10 @@ using System.Text;
 using System.Threading;
 using System.IO;
 
+//Contextos
+using System.Threading.Tasks;
+using System.Collections;
+
 namespace MultiThread
 {
     class Procesador
@@ -198,10 +202,10 @@ namespace MultiThread
             //*****************Fin bloque de creacion******************//
 
             //***********Bloque inicializacion***********************//
-            reg[0] = 0;         //no debe ser modificado nunca
-            for(int i = 1; i < 32; ++i)
+            
+            for(int i = 0; i < 32; ++i)
             {
-                reg[i] = -1;
+                reg[i] = 0;
             }
 
             for (int i = 0; i < 4; ++i) //las caches se inicializadas en cero
@@ -744,5 +748,74 @@ namespace MultiThread
                 }//FIN del quantum
             }//FIN del while(true)
         } //FIN de Nucleos 
-    }//FIN de la clase
+    }//FIN de la clase Nucleos
+    
+    
+    
+    public class Contextos
+    {
+        private static Queue cola;
+        private struct Contexto // C# mantiene los struct
+        {
+            public int pc;
+            public int[] regist;
+
+            public Contexto(int p, int[] reg)
+            {
+                pc = p;
+                regist = new int[32];
+                for (int i = 1; i < 32; ++i)
+                {
+                   regist[i] = reg[i];
+                }
+            }
+            
+            public Contexto2(int p)
+            {
+                pc = p;
+                regist = new int[32];
+                for (int i = 1; i < 32; ++i)
+                {
+                   regist[i] = 0;
+                }
+            }
+        }
+
+       public Contextos()
+        {
+            cola = new Queue();
+        }
+
+         public ~Contextos() //Destructor de la clase
+        {
+            cola.Finalize();
+        }
+
+
+        //reg se debe recibir por referencia 
+        public void Guardar(int p, ref int[] reg)//Guarda el contexto         
+        {
+            Contexto nueva = new Contexto(p, reg);
+            cola.Enqueue(nueva);
+
+        }//FIN de Guardar
+
+        //recibir todo por referencia
+        public void Sacar(out int p, ref int[] reg)//Retorna el contexto
+        {
+            Contexto aux = (Contexto)cola.Dequeue();
+            for (int i = 1; i < 32; ++i)
+            {
+                reg[i] = aux.regist[i];
+            }
+            p = aux.pc;
+        }//FIN de Sacar
+        
+        public void Encolar(int p)
+        {
+            Contexto nueva = new Contexto2(p);
+            cola.Enqueue(nueva);
+        }//FIN de Encolar
+
+    }//FIN de la clase Contextos
 }//FIN del namespace
