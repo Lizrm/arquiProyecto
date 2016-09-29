@@ -112,23 +112,30 @@ namespace MultiThread
             Console.Write("\nIngrese el numero de hilillos Totales \n");
             total = int.Parse(Console.ReadLine());
             
-            int indice = 0;                                     //*****************Editar aqui  lee de archivo a medias*********************////
+            int indice = 0; 
+            int counter = 0;
+            string linea;
             for(int j = 0; j<total; ++j)
             {
                 //obtener archivo
                 cola.Encolar(indice); //Solo agrega el PC para iniciar las intrucciones
                 
-                while(!entrada.eof()) // Cambiar por instruccion de c#
+
+                // Read the file and display it line by line.
+                System.IO.StreamReader file =  new System.IO.StreamReader(@"c:\test.txt");
+                while ((line = file.ReadLine()) != null)
                 {
-                    entrada.getline(linea, 7);// Cambiar por instruccion de c#
-                    int i = 0;
-                    while(i<7)
-                    {
-                        memInstruc[indice] = (linea[i] - 48); //conversion a int // Cambiar por instruccion de c#
-                        indice++;
-                        i += 2;
-                    }
+                    linea
+
+
+                    counter++;
                 }
+
+                file.Close();
+                System.Console.WriteLine("There were {0} lines.", counter);
+                // Suspend the screen.
+                System.Console.ReadLine();
+
             }
                 //*****************Leer archivo termina aqui*********************////
     
@@ -255,7 +262,7 @@ namespace MultiThread
                         cacheInstruc[5][posicion] = 1;
 
                         iterador = posicion * 4;
-                        inicioBloque = ;// calcular
+                       inicioBloque = (bloque*16)-384;// bloque de instrucciones
                         for (int i = 0; i < 4; ++i)
                         {
                             for (int j = 0; j < 4; ++j)
@@ -342,12 +349,15 @@ namespace MultiThread
                             break;
 
                         case 35: //LW
-                                 //pedir memoria de datos
-                                 //caculo de bloque y palabra
+                                 
+                            int dir = rf1 + rd;
+                            bloque = dir / 16;
+                            posicion = bloque % 4;
+                            palabra = (dir % 16) / 4;     //caculo de bloque y palabra
+
                             switch (int.Parse(Thread.CurrentThread.Name))
                             {
                                 case 1:
-                                    //caculo de bloque y palabra
                                     bool conseguido = false;
                                     while (!conseguido)
                                     {
@@ -357,7 +367,7 @@ namespace MultiThread
                                         }
                                         TicReloj();
                                         if (!(bloque == cacheDatos1[4, posicion]) && !(cacheDatos1[5,posicion] == 1))
-                						        {
+                						{
                                             if (!Monitor.TryEnter(busD))
                                             {
                                                 Monitor.Exit(cacheDatos1); //cambiar por mi cache de datos
@@ -367,7 +377,7 @@ namespace MultiThread
                                             {
                                                 conseguido = true;
                                                 TicReloj();
-                                                inicioBloque = ;    //inicio del bloque a copiar
+                                                inicioBloque = bloque*4;    //inicio del bloque a copiar
 
                                                 for (int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
                                                 {
@@ -381,13 +391,12 @@ namespace MultiThread
                                     }
                                     FallodeCache(28);
                                     Monitor.Exit(busD);
-                                    Monitor.Exit(cacheDatos1);
-                                    //Se le entrega el dato al registro 
+                                    rf2 = cacheDatos1[palabra, posicion];
+                                    Monitor.Exit(cacheDatos1);                     
 
                                     break;
 
                                 case 2:
-                                    //caculo de bloque y palabra
                                     bool c2 = false;
                                     while (!c2)
                                     {
@@ -396,7 +405,7 @@ namespace MultiThread
                                             TicReloj();
                                         }
                                         TicReloj();
-                                        if (!(bloque == cacheDatos2[4, posicion]) && !(cacheDatos2[5, posicion] == 1]))
+                                        if (!(bloque == cacheDatos2[4, posicion]) && !(cacheDatos2[5, posicion] == 1))
                 						{
                                             if (!Monitor.TryEnter(busD))
                                             {
@@ -407,7 +416,7 @@ namespace MultiThread
                                             {
                                                 c2 = true;
                                                 TicReloj();
-                                                inicioBloque = ;    //inicio del bloque a copiar
+                                                inicioBloque = bloque*4;    //inicio del bloque a copiar
 
                                                 for (int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
                                                 {
@@ -427,7 +436,6 @@ namespace MultiThread
                                     break;
 
                                 case 3:
-                                    //caculo de bloque y palabra y posicion
                                     bool c3 = false;
                                     while (!c3)
                                     {
@@ -447,7 +455,7 @@ namespace MultiThread
                                             {
                                                 c3 = true;
                                                 TicReloj();
-                                                inicioBloque = ;    //inicio del bloque a copiar
+                                                inicioBloque = bloque*4;    //inicio del bloque a copiar
 
                                                 for (int i = 0; i < 4; ++i) //Copia los datos de memoria a Cache
                                                 {
@@ -468,6 +476,11 @@ namespace MultiThread
                             break;
 
                         case 43: //SW
+                            int direccion = rf1 + rd;
+                            bloque = direccion / 16;
+                            posicion = bloque % 4;
+                            palabra = (direccion % 16) / 4;
+
                             switch (int.Parse(Thread.CurrentThread.Name))
                             {
                                 case 1:
@@ -527,17 +540,16 @@ namespace MultiThread
                                     }
                                     if ((bloque == cacheDatos1[4, posicion]) && (cacheDatos1[5, posicion] == 1))
             						{
-                                        cacheDatos1[palabra, posicion] = ;//registro donde viene
+                                        cacheDatos1[palabra, posicion] = rf2;//registro donde viene
 
                                     }
-                                    memDatos[palabra] = ; //registro donde viene
+                                    memDatos[palabra] = rf2; //registro donde viene
                                     FallodeCache(7);
                                     Monitor.Exit(busD);
                                     Monitor.Exit(cacheDatos1);
                                     break;
 
                                 case 2:
-                                    //caculo de bloque y palabra
                                     bool c4 = false;
                                     while (!c4)
                                     {
@@ -593,17 +605,16 @@ namespace MultiThread
                                     }
                                     if ((bloque == cacheDatos1[4, posicion]) && (cacheDatos1[5, posicion] == 1))
             						{
-                                        cacheDatos1[palabra, posicion] = ;//registro donde viene
+                                        cacheDatos1[palabra, posicion] = rf2;//registro donde viene
 
                                     }
-                                    memDatos[palabra] = ; //registro donde viene
+                                    memDatos[palabra] = rf2; //registro donde viene
                                     FallodeCache(7);
                                     Monitor.Exit(busD);
                                     Monitor.Exit(cacheDatos1);
                                     break;
 
                                 case 3:
-                                    //caculo de bloque y palabra
                                     bool c5 = false;
                                     while (!c5)
                                     {
@@ -659,10 +670,10 @@ namespace MultiThread
                                     }
                                     if ((bloque == cacheDatos1[4, posicion]) && (cacheDatos1[5, posicion] == 1))
             						{
-                                        cacheDatos1[palabra, posicion] = ;//registro donde viene
+                                        cacheDatos1[palabra, posicion] = rf2;//registro donde viene
 
                                     }
-                                    memDatos[palabra] = ; //registro donde viene
+                                    memDatos[palabra] = rf2; //registro donde viene
                                     FallodeCache(7);
                                     Monitor.Exit(busD);
                                     Monitor.Exit(cacheDatos1);
