@@ -1,87 +1,77 @@
-class Contextos
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Collections;
+
+namespace MultiThread
 {
-    private struct Contexto // C# mantiene los struct
+    public class Contextos
     {
-    	int pc;    
-    	int regist[32];
-    	int RL;
-    }
-    
-    private struct EstadoFinal // C# mantiene los struct
-    {
-    	int pc;    
-    	int regist[32];
-    	int RL;
-    	int cD[6][4];	
-    	int cI[6][16];
-    }
-
-	Contextos()
-	{
-	    n = 0;
-	} 
-	
-	~Contextos(){}	//Destructor de la clase
-
-    //Guarda el contexto
-    //reg se debe recibir por referencia creo
-	void Agregar(int p, int *reg, int rl)            
-	{
-	   
-	    Contexto * nueva  = new contexto;
-	    nueva->pc = p;
-	    nueva->RL = rl;
-	    
-	    for(int i = 1; i <32; ++i)
-	    {
-	        nueva->regist[i] = reg[i];
-	    }
-	    ultimo -> siguiente = nueva;
-	    ultimo = nueva;
-	    
-	    if(n == 0)
-	    {
-	        primero = nueva;
-	    }
-	     n++;
-	}
-	
-	//Borra el contexto 
-	//estos se deben recibir por referencia &
-	void Sacar(int p, int*reg, int rl)
-	{
-	    p = primero->pc;
-	    rl = primero->RL;
-	    for(int i = 1; i <33; ++i)
-	    {
-	        reg[i] = primero->regist[i];
-	    }
-	    
-        primero = primero->siguiente;
-	    Contexto * aux = primero;
-	    delete aux;
-	    --n;
-	}
-
-	void Encolar(int pc)
-	{
-		contexto * nueva  = new contexto;
-		nueva.PC = pc;
-		for(int i = 0; i < 33; ++i)
+        private static Queue cola;
+        private struct Contexto // C# mantiene los struct
         {
-           nueva.reg[i] = 0;
+            public int pc;
+            public int[] regist;
+
+            public Contexto(int p, int[] reg)
+            {
+                pc = p;
+                regist = new int[32];
+                for (int i = 1; i < 32; ++i)
+                {
+                   regist[i] = reg[i];
+                }
+            }
+            
+            public Contexto2(int p)
+            {
+                pc = p;
+                regist = new int[32];
+                for (int i = 1; i < 32; ++i)
+                {
+                   regist[i] = 0;
+                }
+            }
         }
-		ultimo.siguiente = nueva;
-	    ultimo = nueva;
-}
-private:
 
-    Contexto * primero;
-    Contexto * ultimo;
-    int n;
-    
-    EstadoFinal * inicio;
-   
-};
+       public Contextos()
+        {
+            cola = new Queue();
+        }
 
-#endif //CONTEXTOS_H
+        ~Contextos() 
+        {
+            cola.Finalize();
+        }    //Destructor de la clase
+
+
+        //reg se debe recibir por referencia 
+        public void Guardar(int p, ref int[] reg)//Guarda el contexto         
+        {
+            Contexto nueva = new Contexto(p, reg);
+            cola.Enqueue(nueva);
+
+        }//FIN de Guardar
+
+        //recibir todo por referencia
+        public void Sacar(out int p, ref int[] reg)//Retorna el contexto
+        {
+            Contexto aux = (Contexto)cola.Dequeue();
+            for (int i = 1; i < 32; ++i)
+            {
+                reg[i] = aux.regist[i];
+            }
+            p = aux.pc;
+        }//FIN de Sacar
+        
+        public void Encolar(int p)
+        {
+            Contexto nueva = new Contexto2(p);
+            cola.Enqueue(nueva);
+        }
+
+    }//FIN de la clase
+}//FIN del namespace
