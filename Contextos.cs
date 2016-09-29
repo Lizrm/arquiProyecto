@@ -22,30 +22,30 @@ namespace MultiThread
                 regist = new int[32];
                 for (int i = 1; i < 32; ++i)
                 {
-                   regist[i] = reg[i];
+                    regist[i] = reg[i];
                 }
             }
-            
-            public Contexto2(int p)
+
+            public Contexto(int p)
             {
                 pc = p;
                 regist = new int[32];
                 for (int i = 1; i < 32; ++i)
                 {
-                   regist[i] = 0;
+                    regist[i] = 0;
                 }
             }
         }
 
-       public Contextos()
+        public Contextos()
         {
             cola = new Queue();
         }
 
-        ~Contextos() 
+        ~Contextos() //Destructor de la clase
         {
-            cola.Finalize();
-        }    //Destructor de la clase
+            //cola.Finalize();
+        }
 
 
         //reg se debe recibir por referencia 
@@ -66,12 +66,17 @@ namespace MultiThread
             }
             p = aux.pc;
         }//FIN de Sacar
-        
+
         public void Encolar(int p)
         {
-            Contexto nueva = new Contexto2(p);
+            Contexto nueva = new Contexto(p);
             cola.Enqueue(nueva);
-        }
+        }//FIN de Encolar
 
-    }//FIN de la clase
+        public int Cantidad()
+        {
+            return cola.Count;
+        }//FIN de cantidad
+
+    }//FIN de la clase Contextos
 }//FIN del namespace
