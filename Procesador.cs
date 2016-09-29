@@ -26,7 +26,7 @@ namespace MultiThread
         public static int[] busD;
         public static int[] busI;
 
-        static Barrier barrier = new Barrier(3, (bar) =>  //Barrera de sincronizacion, lo que esta dentro se ejecuta una sola vez
+        static Barrier barrier = new Barrier(4, (bar) =>  //Barrera de sincronizacion, lo que esta dentro se ejecuta una sola vez
         {
             reloj++;
         }); //FIN de la Barrera
@@ -141,17 +141,40 @@ namespace MultiThread
     
     
             //Creacion de los 3 hilos que emulan los nucleos
-            Thread my1 = new Thread(() => Nucleos(quantumTotal));
-            Thread my2 = new Thread(() => Nucleos(quantumTotal));
-            Thread my3 = new Thread(() => Nucleos(quantumTotal));
+            Thread thread1 = new Thread(() => Nucleos(quantumTotal));
+            Thread thread2 = new Thread(() => Nucleos(quantumTotal));
+            Thread thread3 = new Thread(() => Nucleos(quantumTotal));
             //Se les asigna un "id" a los hilos
-            my1.Name = "1";
-            my2.Name = "2";
-            my3.Name = "3";
+            thread1.Name = "1";
+            thread2.Name = "2";
+            thread3.Name = "3";
             //Se inician los hilos
-            my1.Start();
-            my2.Start();
-            my3.Start();
+            thread1.Start();
+            thread2.Start();
+            thread3.Start();
+            
+            
+            //Verificar que todos los hilillos finalizaron
+            int cardinalidad;
+            cardinalidad = 0;
+            while(cardinalidad < total)
+            {
+                if(!TryEnter(finalizados))
+                {
+                    TicReloj();
+                }
+                TicReloj();
+                cardinalidad = finalizados.Count();
+                Monitor.Exit(finalizados);
+            }
+            
+            //Matar los 3 hilos que emulan los nucleos
+            thread1.
+            thread2.
+            thread3.
+            
+            
+            //Imprimir lo que deba imprimir, preguntar a la profe
        }//FIN de Main
        
         public static void Nucleos(int q) //quatum
