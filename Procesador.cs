@@ -25,8 +25,9 @@ namespace MultiThread
         public static int[] RL3;
         public static int[] busD;
         public static int[] busI;
+        public static int llegan = 4;
 
-        static Barrier barrier = new Barrier(4, (bar) =>  //Barrera de sincronizacion, lo que esta dentro se ejecuta una sola vez
+        static Barrier barrier = new Barrier(llegan, (bar) =>  //Barrera de sincronizacion, lo que esta dentro se ejecuta una sola vez
         {
             reloj++;
         }); //FIN de la Barrera
@@ -168,10 +169,10 @@ namespace MultiThread
                 Monitor.Exit(finalizados);
             }
             
-            //Matar los 3 hilos que emulan los nucleos
-            thread1.
-            thread2.
-            thread3.
+            //Finaliza los 3 hilos que emulan los nucleos               //Preguntar, depues de matar los hilos, debo segui dando tic de reloj??
+            thread1.Finalize();
+            thread2.Finalize();
+            thread3.Finalize();
             
             
             //Imprimir lo que deba imprimir, preguntar a la profe
