@@ -719,7 +719,6 @@ namespace MultiThread
 
                 }//FIN del quantum
             }//FIN del while(true)
-        } //FIN de Nucleos    
-        
+        } //FIN de Nucleos 
     }//FIN de la clase
 }//FIN del namespace
