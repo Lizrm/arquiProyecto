@@ -832,7 +832,7 @@ namespace MultiThread
             p = aux.pc;
         }//FIN de Sacar
 
-        public void Encolar(int p, int total)
+        public void Encolar(int p)
         {
             Contexto nueva = new Contexto(p);
             cola.Enqueue(nueva);
@@ -847,7 +847,7 @@ namespace MultiThread
         {
             Contexto nueva = new Contexto(p, ref reg, cpu, total);
             cola.Enqueue(nueva);
-        }//FIN fr GuardarFinalizados
+        }//FIN de GuardarFinalizados
 
     }//FIN de la clase Contextos
 }//FIN del namespace
