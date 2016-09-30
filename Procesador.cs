@@ -187,7 +187,8 @@ namespace MultiThread
             int PC;                   //Para el control de las instrucciones
             int cop, rf1, rf2, rd;//codigo de operacion, registro fuente, registro fuente2 o registro destino dependiendo de la instruccion, rd registro destino o inmediato dependiendo de la instruccion
             int bloque, posicion, palabra, iterador, quantum, inicioBloque; // bloque es el bloque de memoria cache, quatum es el tiempo dado por el usuario
-
+            int cpu;    //Tic de reloj que dura un hilillo en ejecucion
+            int inicioReloj;
             /**Bloque de Creacion**/
             reg = new int[32];
             cacheInstruc[0] = new int[16];
@@ -262,8 +263,9 @@ namespace MultiThread
                         Monitor.Exit(RL3);
                         break;
                 }
-
-                cola.Sacar(out PC, ref reg);
+                cpu = 0;
+                inicioReloj = reloj;
+                cola.Sacar(out PC, ref reg, ref cpu);
                 Monitor.Exit(cola);
                 quantum = q;
 
@@ -723,7 +725,8 @@ namespace MultiThread
                         }
                         TicReloj();
 
-                        finalizados.Guardar(PC, ref reg);
+                        cpu += (reloj - inicioReloj);   //Ciclos de reloj que duro el hilillo en ejecucion
+                        finalizados.GuardarFinalizados(PC, ref reg, cpu, reloj);
                         Monitor.Exit(finalizados);
                     }
                     else
@@ -736,7 +739,8 @@ namespace MultiThread
                             }
                             TicReloj();
 
-                            cola.Guardar(PC, ref reg);
+                            cpu += (reloj - inicioReloj);
+                            cola.Guardar(PC, ref reg, cpu);
                             Monitor.Exit(cola);
                         }
                     }
@@ -756,27 +760,47 @@ namespace MultiThread
         {
             public int pc;
             public int[] regist;
+            public int relojCPU;
+            public int relojTotal;
 
-            public Contexto(int p, int[] reg)
+            public Contexto(int p, ref int[] reg, int cpu)  //Contextos con registros que no han finalizado
             {
                 pc = p;
                 regist = new int[32];
+                relojCPU = cpu;
+                relojTotal = 0;
+
                 for (int i = 1; i < 32; ++i)
                 {
                     regist[i] = reg[i];
                 }
             }
 
-            public Contexto(int p)
+            public Contexto(int p)      //Contextos que solo tiene el PC
             {
                 pc = p;
+                relojCPU = 0;
+                relojTotal = 0;           
                 regist = new int[32];
                 for (int i = 1; i < 32; ++i)
                 {
                     regist[i] = 0;
                 }
             }
-        }
+
+            public Contexto(int p, ref int[] reg, int cpu, int total)   //Contextos finalizados
+            {
+                pc = p;
+                regist = new int[32];
+                relojCPU = cpu;
+                relojTotal = total;
+
+                for (int i = 1; i < 32; ++i)
+                {
+                    regist[i] = reg[i];
+                }
+            }
+        }//FIN del struct
 
         public Contextos()
         {
@@ -790,25 +814,25 @@ namespace MultiThread
 
 
         //reg se debe recibir por referencia 
-        public void Guardar(int p, ref int[] reg)//Guarda el contexto         
+        public void Guardar(int p, ref int[] reg, int cpu)//Guarda el contexto         
         {
-            Contexto nueva = new Contexto(p, reg);
+            Contexto nueva = new Contexto(p, ref reg, cpu);
             cola.Enqueue(nueva);
 
         }//FIN de Guardar
 
-        //recibir todo por referencia
-        public void Sacar(out int p, ref int[] reg)//Retorna el contexto
+        public void Sacar(out int p, ref int[] reg, ref int relojActual)//Retorna el contexto
         {
             Contexto aux = (Contexto)cola.Dequeue();
             for (int i = 1; i < 32; ++i)
             {
                 reg[i] = aux.regist[i];
             }
+            relojActual += aux.relojCPU;
             p = aux.pc;
         }//FIN de Sacar
 
-        public void Encolar(int p)
+        public void Encolar(int p, int total)
         {
             Contexto nueva = new Contexto(p);
             cola.Enqueue(nueva);
@@ -818,6 +842,12 @@ namespace MultiThread
         {
             return cola.Count;
         }//FIN de cantidad
+
+        public void GuardarFinalizados(int p, ref int[] reg, int cpu, int total)
+        {
+            Contexto nueva = new Contexto(p, ref reg, cpu, total);
+            cola.Enqueue(nueva);
+        }//FIN fr GuardarFinalizados
 
     }//FIN de la clase Contextos
 }//FIN del namespace
