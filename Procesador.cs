@@ -31,6 +31,7 @@ namespace MultiThread
         static Barrier barrier = new Barrier(llegan, (bar) =>  //Barrera de sincronizacion, lo que esta dentro se ejecuta una sola vez
         {
             reloj++;
+           // Console.WriteLine("Tic de reloj");
         }); //FIN de la Barrera
 
         static public void TicReloj()
@@ -49,16 +50,7 @@ namespace MultiThread
         static void Main()
         {
             Console.WriteLine("Hello World!"); //Escribir en consola
-            string path = @"c:\temp\MyTest.txt";
-            char[] linea = new char[8];
-            using (StreamReader sr = new StreamReader("TestFile.txt"))
-            {
-                //sr.Read(linea, Int32, Int32);     //metodo que Lee un máximo especificado de caracteres de la secuencia actual en un búfer, comenzando en el índice especificado
-                String line = sr.ReadLine(); //Lee una línea de caracteres de la secuencia actual y devuelve los datos como una cadena.
-                sr.Read(); //Lee el siguiente carácter de la secuencia de entrada y hace avanzar la posición de los caracteres en un carácter
-            }
-
-
+           
             //**Bloque de creacion**//
 
             memDatos = new int[96]; // 384/4
@@ -114,9 +106,9 @@ namespace MultiThread
             Console.Write("\nIngrese el numero de hilillos Totales \n");
             total = int.Parse(Console.ReadLine());
 
-            int indice = 0;
+            /*int indice = 0;
             int counter = 0;
-            /*string linea;
+            string linea;
             for (int j = 0; j < total; ++j)
             {
                 //obtener archivo
@@ -139,6 +131,22 @@ namespace MultiThread
                 System.Console.ReadLine();
 
             }*/
+
+            /*
+                        for(int i = 0; i < 5; ++i)
+                        {
+                            memInstruc[i] = int.Parse(Console.ReadLine());
+                        }
+                        */
+
+            memInstruc[0] = 8;
+            memInstruc[1] = 2;
+            memInstruc[2] = 2;
+            memInstruc[3] = 2;
+            memInstruc[4] = 63;
+            cola.Encolar(0);
+
+
             //*****************Leer archivo termina aqui*********************////
 
 
@@ -165,9 +173,12 @@ namespace MultiThread
                 {
                     TicReloj();
                 }
-                TicReloj();
-                cardinalidad = finalizados.Cantidad();
-                Monitor.Exit(finalizados);
+                else
+                {
+                    TicReloj();
+                    cardinalidad = finalizados.Cantidad();
+                    Monitor.Exit(finalizados);
+                }               
             }
 
             //Finaliza los 3 hilos que emulan los nucleos               //Preguntar, depues de matar los hilos, debo segui dando tic de reloj??
@@ -175,8 +186,8 @@ namespace MultiThread
             thread2.Abort();
             thread3.Abort();
 
+           finalizados.Imprimir();
 
-            //Imprimir lo que deba imprimir, preguntar a la profe
         }//FIN de Main
 
         public static void Nucleos(int q) //quatum
@@ -221,15 +232,24 @@ namespace MultiThread
                 }
             }
             //**************Fin bloque inicilaizacion****************//
-
+            Console.WriteLine("entra al hilo");
             while (true)//while que no deja que los hilos mueran
             {
-                while (!Monitor.TryEnter(cola))
+                bool vacia = true;
+                while(vacia)
                 {
+                    while (!Monitor.TryEnter(cola))
+                    {
+                        TicReloj();
+                    }
                     TicReloj();
+                    if (cola.Cantidad() > 0)
+                    {
+                        vacia = false;
+                    }
                 }
-                TicReloj();
-
+                
+                Console.WriteLine("Consigue la cola");
                 switch (int.Parse(Thread.CurrentThread.Name)) //RL
                 {
 
@@ -263,14 +283,17 @@ namespace MultiThread
                         Monitor.Exit(RL3);
                         break;
                 }
+                
                 cpu = 0;
                 inicioReloj = reloj;
                 cola.Sacar(out PC, ref reg, ref cpu);
+
                 Monitor.Exit(cola);
                 quantum = q;
 
                 while (quantum > 0)
                 {
+                 
                     /**************************/
                     bloque = PC / 16;  //calculo el bloque
                     posicion = bloque % 4;    //posicion en cache
@@ -289,16 +312,16 @@ namespace MultiThread
                         cacheInstruc[5][posicion] = 1;
 
                         iterador = posicion * 4;
-                        inicioBloque = (bloque * 16) - 384;// bloque de instrucciones
+                        inicioBloque = (bloque * 16);// - 384;// bloque de instrucciones
                         for (int i = 0; i < 4; ++i)
                         {
                             for (int j = 0; j < 4; ++j)
                             {
-                                cacheInstruc[i][iterador] = memInstruc[inicioBloque];
-                                ++iterador;
+                                cacheInstruc[i][j] = memInstruc[inicioBloque];
+                              
                                 ++inicioBloque;
+                                Console.WriteLine(cacheInstruc[i][j]);
                             }
-                            iterador -= 3;
                         }
                         FallodeCache(28);
                         Monitor.Exit(busI);
@@ -315,7 +338,7 @@ namespace MultiThread
                     switch (cop) //cop es el codigo de operacion 		// se deben verificar que el registro destino no sea cero 
                     {
                         case 8: //DADDI rf1 <------- rf2 + inm
-
+                            
                             reg[rf1] = reg[rf2] + rd;
                             break;
 
@@ -709,7 +732,7 @@ namespace MultiThread
                             break;
 
                         case 63: //FIN
-
+                           
                             quantum = -1;  // Para tener el control de que la ultima instruccion fue FIN
                             break;
                     }
@@ -726,6 +749,8 @@ namespace MultiThread
                         TicReloj();
 
                         cpu += (reloj - inicioReloj);   //Ciclos de reloj que duro el hilillo en ejecucion
+                        Console.WriteLine("Se agrego elemento a finalizados PC: ");
+                        Console.WriteLine(PC);
                         finalizados.GuardarFinalizados(PC, ref reg, cpu, reloj);
                         Monitor.Exit(finalizados);
                     }
@@ -755,7 +780,8 @@ namespace MultiThread
 
     public class Contextos
     {
-        private static Queue cola;
+        private static Queue queue;
+        private int contador;
         private struct Contexto // C# mantiene los struct
         {
             public int pc;
@@ -804,7 +830,7 @@ namespace MultiThread
 
         public Contextos()
         {
-            cola = new Queue();
+            queue = new Queue();
         }
 
         ~Contextos() //Destructor de la clase
@@ -817,37 +843,53 @@ namespace MultiThread
         public void Guardar(int p, ref int[] reg, int cpu)//Guarda el contexto         
         {
             Contexto nueva = new Contexto(p, ref reg, cpu);
-            cola.Enqueue(nueva);
+            queue.Enqueue(nueva);
+            contador++;
 
         }//FIN de Guardar
 
         public void Sacar(out int p, ref int[] reg, ref int relojActual)//Retorna el contexto
         {
-            Contexto aux = (Contexto)cola.Dequeue();
+            Contexto aux = (Contexto)queue.Dequeue();
             for (int i = 1; i < 32; ++i)
             {
                 reg[i] = aux.regist[i];
             }
             relojActual += aux.relojCPU;
             p = aux.pc;
+            contador--;
         }//FIN de Sacar
 
         public void Encolar(int p)
         {
             Contexto nueva = new Contexto(p);
-            cola.Enqueue(nueva);
+            queue.Enqueue(nueva);
+            contador++;
         }//FIN de Encolar
 
         public int Cantidad()
         {
-            return cola.Count;
+            return contador;
+
         }//FIN de cantidad
 
         public void GuardarFinalizados(int p, ref int[] reg, int cpu, int total)
         {
             Contexto nueva = new Contexto(p, ref reg, cpu, total);
-            cola.Enqueue(nueva);
+            queue.Enqueue(nueva);
+            contador++;
         }//FIN de GuardarFinalizados
+
+        public void Imprimir()
+        {
+            Contexto aux = (Contexto)queue.Dequeue();
+            Console.WriteLine("PC: \t" + aux.pc + "\nReloj CPU: \t" + aux.relojCPU + "\nReloj Total: \t" + aux.relojTotal);
+            for (int i = 1; i < 32; ++i)
+            {
+                Console.WriteLine("reg[" + i + "]= \t" + aux.regist[i]);
+            }
+            string t = Console.ReadLine();
+        }
 
     }//FIN de la clase Contextos
 }//FIN del namespace
