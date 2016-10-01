@@ -880,13 +880,17 @@ namespace MultiThread
 
         public void Imprimir()
         {
-            Contexto aux = (Contexto)queue.Dequeue();
-            Console.WriteLine("PC: \t" + aux.pc + "\nReloj CPU: \t" + aux.relojCPU + "\nReloj Total: \t" + aux.relojTotal);
-            for (int i = 1; i < 32; ++i)
+            while(0 < contador)
             {
-                Console.WriteLine("reg[" + i + "]= \t" + aux.regist[i]);
-            }
-            string t = Console.ReadLine();
+                Contexto aux = (Contexto)queue.Dequeue();
+                Console.WriteLine("PC: \t" + aux.pc + "\nReloj CPU: \t" + aux.relojCPU + "\nReloj Total: \t" + aux.relojTotal);
+                for (int i = 1; i < 32; ++i)
+                {
+                    Console.WriteLine("reg[" + i + "]= \t" + aux.regist[i]);
+                }
+                string t = Console.ReadLine();    
+                }
+            
         }
 
     }//FIN de la clase Contextos
