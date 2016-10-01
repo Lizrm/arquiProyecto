@@ -101,9 +101,9 @@ namespace MultiThread
             }
             //*****************Fin de Bloque*************************//
 
-            Console.Write("Ingrese el quantum \n");
+            Console.Write("Ingrese el quantum");
             quantumTotal = int.Parse(Console.ReadLine());
-            Console.Write("\nIngrese el numero de hilillos Totales \n");
+            Console.Write("\nIngrese el numero de hilillos Totales");
             total = int.Parse(Console.ReadLine());
 
             /*int indice = 0;
@@ -131,21 +131,19 @@ namespace MultiThread
                 System.Console.ReadLine();
 
             }*/
-
-            /*
-                        for(int i = 0; i < 5; ++i)
-                        {
-                            memInstruc[i] = int.Parse(Console.ReadLine());
-                        }
-                        */
-
-            memInstruc[0] = 8;
-            memInstruc[1] = 2;
-            memInstruc[2] = 2;
-            memInstruc[3] = 2;
-            memInstruc[4] = 63;
+ 
+            for(int i = 0; i < 8; ++i)
+            {
+                memInstruc[i] = int.Parse(Console.ReadLine());
+            }
             cola.Encolar(0);
 
+            Console.Write("Segundo hilo");
+            for (int i = 0; i < 9; ++i)
+            {
+                memInstruc[i] = int.Parse(Console.ReadLine());
+            }
+            cola.Encolar(8);
 
             //*****************Leer archivo termina aqui*********************////
 
@@ -311,16 +309,16 @@ namespace MultiThread
                         cacheInstruc[4][posicion] = bloque;
                         cacheInstruc[5][posicion] = 1;
 
-                        iterador = posicion * 4;
+                        
                         inicioBloque = (bloque * 16);// - 384;// bloque de instrucciones
                         for (int i = 0; i < 4; ++i)
                         {
+                            iterador = posicion * 4;
                             for (int j = 0; j < 4; ++j)
                             {
-                                cacheInstruc[i][j] = memInstruc[inicioBloque];
-                              
+                                cacheInstruc[i][iterador] = memInstruc[inicioBloque];                              
                                 ++inicioBloque;
-                                Console.WriteLine(cacheInstruc[i][j]);
+                                ++iterador;                       
                             }
                         }
                         FallodeCache(28);
@@ -732,7 +730,7 @@ namespace MultiThread
                             break;
 
                         case 63: //FIN
-                           
+                            Console.WriteLine("FIN");
                             quantum = -1;  // Para tener el control de que la ultima instruccion fue FIN
                             break;
                     }
